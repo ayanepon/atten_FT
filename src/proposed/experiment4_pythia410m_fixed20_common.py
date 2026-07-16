@@ -2,28 +2,37 @@
 """Shared configuration for the Pythia-410m MIMIR fixed-20 rerun."""
 
 import os
+import sys
 from pathlib import Path
 from typing import Sequence
 
-from experiment4_mimir_hardsplit_fixed20_attention import run_fixed20
-
 
 MODEL_ROOT = Path(
-    "models/"
-    "mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_pythia410m"
+    os.environ.get(
+        "PYTHIA410M_MIMIR_MODEL_ROOT",
+        "models/"
+        "mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_pythia410m",
+    )
 )
 OUTPUT_ROOT = Path(
-    "results/"
-    "mimir_wikipedia_hardsplit_fixed20_pythia410m_rerun"
+    os.environ.get(
+        "PYTHIA410M_FIXED20_OUTPUT_ROOT",
+        "results/"
+        "mimir_wikipedia_hardsplit_fixed20_pythia410m_rerun",
+    )
 )
 
 
 def resolve_adapter_dir() -> Path:
-    candidates = [MODEL_ROOT / "adapter", MODEL_ROOT]
+    candidates = [
+        Path(os.environ["PYTHIA410M_ADAPTER_DIR"]) if os.environ.get("PYTHIA410M_ADAPTER_DIR") else None,
+        MODEL_ROOT / "adapter",
+        MODEL_ROOT,
+    ]
     for candidate in candidates:
-        if (candidate / "adapter_config.json").exists():
+        if candidate is not None and (candidate / "adapter_config.json").exists():
             return candidate
-    tried = "\n".join(f"  - {path}" for path in candidates)
+    tried = "\n".join(f"  - {path}" for path in candidates if path is not None)
     raise FileNotFoundError(
         "Pythia-410m LoRA adapter was not found. Tried:\n" + tried
     )
@@ -34,11 +43,37 @@ def run_group(group: str) -> None:
         raise ValueError(f"Unsupported group: {group}")
 
     adapter_dir = resolve_adapter_dir()
+    output_dir = OUTPUT_ROOT / f"fixed_attention_20_{group}"
+
     os.environ["BASE_MODEL_NAME"] = "EleutherAI/pythia-410m"
-    os.environ["RUN_DIR"] = str(MODEL_ROOT)
-    os.environ["ADAPTER_DIR"] = str(adapter_dir)
-    os.environ["OUTPUT_DIR"] = str(OUTPUT_ROOT / f"fixed_attention_20_{group}")
-    run_fixed20([group])
+    os.environ["MIMIR_HARDSPLIT_RUN_DIR"] = str(MODEL_ROOT)
+    os.environ["MIMIR_HARDSPLIT_BASE_DIR"] = str(MODEL_ROOT)
+    os.environ["MIMIR_HARDSPLIT_ADAPTER_DIR"] = str(adapter_dir)
+    os.environ["OUTPUT_DIR"] = str(output_dir)
+
+    # Import after setting BASE_MODEL_NAME because mimir_hardsplit_attention_common
+    # reads the model name at import time.
+    from experiment4_mimir_hardsplit_stopping_condition import main
+
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = [
+            old_argv[0],
+            "--run-dir",
+            str(MODEL_ROOT),
+            "--adapter-dir",
+            str(adapter_dir),
+            "--output-dir",
+            str(output_dir),
+            "--no-run-dynamic",
+            "--fixed-steps",
+            "20",
+            "--groups",
+            group,
+        ]
+        main()
+    finally:
+        sys.argv = old_argv
 
 
 def run_groups(groups: Sequence[str]) -> None:
