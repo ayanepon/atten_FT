@@ -17,7 +17,7 @@
 ## ディレクトリ構成
 
 ```text
-github_experiment_code_package/
+anonymous_github_experiment_code/
   README.md
   README_JA.md
   requirements.txt
@@ -26,7 +26,6 @@ github_experiment_code_package/
   models/
   results/
   scripts/
-  scripts_abs/
   src/
     train/
     proposed/

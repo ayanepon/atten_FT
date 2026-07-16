@@ -1,72 +1,73 @@
 # Professor Experiment Code Set
 
-This is the compact code set to upload to GitHub. It corresponds to the
-experiment code shown to the professor, plus the additional baseline scripts
-implemented afterward.
+This repository is the compact code set prepared for GitHub. Paths below are
+relative to the repository root.
 
-## Upload This Directory
+## Upload Directory
+
+Upload the whole repository directory:
 
 ```text
-submission_artifact/
+anonymous_github_experiment_code/
 ```
 
-This directory is the clean reproduction package. It contains the organized
-training, proposed-method, baseline, and analysis code.
+It contains the organized training, proposed-method, baseline, and analysis
+code. Large checkpoints and raw result CSVs are intentionally excluded.
 
 ## Main Proposed Method Code
 
 ```text
-submission_artifact/src/proposed/mimir_hardsplit_attention_common.py
-submission_artifact/src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
+src/proposed/mimir_hardsplit_attention_common.py
+src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
 ```
 
 Model-specific fixed-20 wrappers:
 
 ```text
-submission_artifact/src/proposed/experiment4_gptneo27b_fixed20_common.py
-submission_artifact/src/proposed/experiment4_gptneo27b_fixed20_ft.py
-submission_artifact/src/proposed/experiment4_gptneo27b_fixed20_pt.py
-submission_artifact/src/proposed/experiment4_gptneo27b_fixed20_unseen.py
+src/proposed/experiment4_gptneo27b_fixed20_common.py
+src/proposed/experiment4_gptneo27b_fixed20_ft.py
+src/proposed/experiment4_gptneo27b_fixed20_pt.py
+src/proposed/experiment4_gptneo27b_fixed20_unseen.py
 
-submission_artifact/src/proposed/experiment4_pythia410m_fixed20_common.py
-submission_artifact/src/proposed/experiment4_pythia410m_fixed20_ft.py
-submission_artifact/src/proposed/experiment4_pythia410m_fixed20_pt.py
-submission_artifact/src/proposed/experiment4_pythia410m_fixed20_unseen.py
+src/proposed/experiment4_pythia410m_fixed20_common.py
+src/proposed/experiment4_pythia410m_fixed20_ft.py
+src/proposed/experiment4_pythia410m_fixed20_pt.py
+src/proposed/experiment4_pythia410m_fixed20_unseen.py
 ```
 
-For Pythia-1B, use:
+Stopping-condition ablation wrappers:
 
 ```text
-submission_artifact/src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
+src/proposed/run_pythia1b_stopping_conditions.py
+src/proposed/run_pythia410m_stopping_conditions.py
+src/proposed/run_gptneo27b_stopping_conditions.py
 ```
-
-with the Pythia-1B checkpoint path.
 
 ## Training Code
 
 ```text
-submission_artifact/src/train/train_mimir_wikipedia_hardsplit_lora.py
-submission_artifact/src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
+src/train/train_mimir_wikipedia_hardsplit_lora.py
+src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 
 ## Analysis Code
 
 ```text
-submission_artifact/src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
-submission_artifact/src/analysis/compare_fixedstep_proposed_baselines_strict.py
-submission_artifact/src/analysis/compare_proposed_attenmia_loraleak_10runs.py
+src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
+src/analysis/compare_fixedstep_proposed_baselines_strict.py
+src/analysis/compare_proposed_attenmia_loraleak_10runs.py
+src/analysis/run_strict_fixed20_3model_comparison_10runs.py
+src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```
 
 ## Baseline Code
 
-Original comparison baselines:
-
 ```text
-submission_artifact/src/baselines/run_attenmia_official_mimir_hardsplit.py
-submission_artifact/src/baselines/run_attenmia_official_mimir_hardsplit_pythia410m.py
-submission_artifact/src/baselines/run_lora_leak_official_mimir_hardsplit.py
-submission_artifact/src/baselines/run_lora_leak_official_mimir_hardsplit_pythia410m.py
-submission_artifact/src/baselines/compare_mink_strict_fixedstep_10runs.py
+src/baselines/run_attenmia_official_mimir_hardsplit.py
+src/baselines/run_attenmia_official_mimir_hardsplit_pythia410m.py
+src/baselines/run_lora_leak_official_mimir_hardsplit.py
+src/baselines/run_lora_leak_official_mimir_hardsplit_pythia410m.py
+src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 
 ## Data Assumption
@@ -74,13 +75,13 @@ submission_artifact/src/baselines/compare_mink_strict_fixedstep_10runs.py
 All methods use the same MIMIR hard split:
 
 ```text
-submission_artifact/data/mimir_hardsplit/mimir_wikipedia_pt_member.csv
-submission_artifact/data/mimir_hardsplit/mimir_wikipedia_ft_nonmember.csv
-submission_artifact/data/mimir_hardsplit/mimir_wikipedia_unseen_nonmember.csv
+data/mimir_hardsplit/mimir_wikipedia_pt_member.csv
+data/mimir_hardsplit/mimir_wikipedia_ft_nonmember.csv
+data/mimir_hardsplit/mimir_wikipedia_unseen_nonmember.csv
 ```
 
-If the data cannot be redistributed, leave `.gitkeep` and write in the README
-that users must place these files manually.
+The CSV files may be omitted from GitHub if redistribution is not allowed. In
+that case, keep `.gitkeep` and place the files manually before running.
 
 ## Do Not Include
 

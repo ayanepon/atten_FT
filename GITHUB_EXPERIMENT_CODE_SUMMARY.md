@@ -1,17 +1,16 @@
 # GitHub Experiment Code Summary
 
-This file summarizes the code that should be uploaded for reproducing the
-experiments.
+This file summarizes the repository contents for reproducing the experiments.
+All paths are relative to the repository root.
 
 ## Recommended Upload Directory
 
-Upload the `submission_artifact/` directory as the clean reproduction package.
-It already contains the organized source code, scripts, configuration files,
-requirements, and README.
+Upload the whole repository directory:
 
 ```text
-submission_artifact/
+anonymous_github_experiment_code/
   README.md
+  README_JA.md
   BASELINE_FIDELITY.md
   requirements.txt
   configs/
@@ -19,7 +18,6 @@ submission_artifact/
   models/
   results/
   scripts/
-  scripts_abs/
   src/
 ```
 
@@ -31,40 +29,40 @@ repository is intended to include artifacts via Git LFS.
 The proposed method code is under:
 
 ```text
-submission_artifact/src/proposed/
+src/proposed/
 ```
 
 Important files:
 
 ```text
-mimir_hardsplit_attention_common.py
-experiment4_mimir_hardsplit_stopping_condition.py
-experiment4_gptneo27b_fixed20_common.py
-experiment4_gptneo27b_fixed20_ft.py
-experiment4_gptneo27b_fixed20_pt.py
-experiment4_gptneo27b_fixed20_unseen.py
-experiment4_pythia410m_fixed20_common.py
-experiment4_pythia410m_fixed20_ft.py
-experiment4_pythia410m_fixed20_pt.py
-experiment4_pythia410m_fixed20_unseen.py
+src/proposed/mimir_hardsplit_attention_common.py
+src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
+src/proposed/experiment4_gptneo27b_fixed20_common.py
+src/proposed/experiment4_gptneo27b_fixed20_ft.py
+src/proposed/experiment4_gptneo27b_fixed20_pt.py
+src/proposed/experiment4_gptneo27b_fixed20_unseen.py
+src/proposed/experiment4_pythia410m_fixed20_common.py
+src/proposed/experiment4_pythia410m_fixed20_ft.py
+src/proposed/experiment4_pythia410m_fixed20_pt.py
+src/proposed/experiment4_pythia410m_fixed20_unseen.py
+src/proposed/run_pythia1b_stopping_conditions.py
+src/proposed/run_pythia410m_stopping_conditions.py
+src/proposed/run_gptneo27b_stopping_conditions.py
 ```
-
-For Pythia-1B, use `experiment4_mimir_hardsplit_stopping_condition.py`
-directly with the Pythia-1B LoRA checkpoint path.
 
 ## Training Code
 
 Training code is under:
 
 ```text
-submission_artifact/src/train/
+src/train/
 ```
 
 Important files:
 
 ```text
-train_mimir_wikipedia_hardsplit_lora.py
-train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
+src/train/train_mimir_wikipedia_hardsplit_lora.py
+src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 
 All model variants should use the same MIMIR hard-split CSV files.
@@ -74,15 +72,17 @@ All model variants should use the same MIMIR hard-split CSV files.
 Analysis code is under:
 
 ```text
-submission_artifact/src/analysis/
+src/analysis/
 ```
 
 Important files:
 
 ```text
-analyze_mimir_fixed_steps_repeated_auc.py
-compare_fixedstep_proposed_baselines_strict.py
-compare_proposed_attenmia_loraleak_10runs.py
+src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
+src/analysis/compare_fixedstep_proposed_baselines_strict.py
+src/analysis/compare_proposed_attenmia_loraleak_10runs.py
+src/analysis/run_strict_fixed20_3model_comparison_10runs.py
+src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```
 
 These scripts compute AUC, AUPRC, TPR@FPR, repeated-run summaries, and
@@ -93,17 +93,17 @@ comparison tables.
 Baseline code is under:
 
 ```text
-submission_artifact/src/baselines/
+src/baselines/
 ```
 
-Existing baselines:
+Included baselines:
 
 ```text
-run_attenmia_official_mimir_hardsplit.py
-run_attenmia_official_mimir_hardsplit_pythia410m.py
-run_lora_leak_official_mimir_hardsplit.py
-run_lora_leak_official_mimir_hardsplit_pythia410m.py
-compare_mink_strict_fixedstep_10runs.py
+src/baselines/run_attenmia_official_mimir_hardsplit.py
+src/baselines/run_attenmia_official_mimir_hardsplit_pythia410m.py
+src/baselines/run_lora_leak_official_mimir_hardsplit.py
+src/baselines/run_lora_leak_official_mimir_hardsplit_pythia410m.py
+src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 
 ## Canonical Data
@@ -111,7 +111,7 @@ compare_mink_strict_fixedstep_10runs.py
 All experiments should use the same split files:
 
 ```text
-submission_artifact/data/mimir_hardsplit/
+data/mimir_hardsplit/
   mimir_wikipedia_pt_member.csv
   mimir_wikipedia_ft_nonmember.csv
   mimir_wikipedia_unseen_nonmember.csv
@@ -122,7 +122,7 @@ that case, keep `.gitkeep` and document how to place the files locally.
 
 ## Main Reproduction Order
 
-Run from inside `submission_artifact/`.
+Run from inside the repository root.
 
 ```bash
 pip install -r requirements.txt
@@ -147,7 +147,7 @@ __pycache__/
 large model checkpoint directories
 large raw result CSVs
 temporary plot folders
-personal local paths outside submission_artifact/
+personal local paths outside this repository
 ```
 
 If large files are required, use Git LFS or provide download instructions.
