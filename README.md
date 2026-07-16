@@ -1,23 +1,24 @@
-# 実験コード一式
+# Experiment Code
 
-このディレクトリは、論文実験で使用したコードをGitHubに公開しやすい形でまとめたものです。
+This repository contains the code used for the paper experiments in a compact
+GitHub-ready form.
 
-主に以下を含みます。
+It includes:
 
-- 提案手法のAttention更新量抽出コード
-- LoRA fine-tuningコード
-- AUC / AUPRC / TPRを計算する解析コード
-- 比較手法のコード
-  - AttenMIA-style
-  - LoRA-Leak-style
-  - Min-K / Min-K++
+- proposed attention-update feature extraction code
+- LoRA fine-tuning code
+- analysis code for AUC, AUPRC, TPR@FPR, repeated runs, and significance tests
+- baseline implementations
+  - AttenMIA-style baseline
+  - LoRA-Leak-style baseline
+  - Min-K / Min-K++ baselines
 
-大きなモデルcheckpointや生成済みの実験結果CSVは含めていません。
+Large model checkpoints and generated result CSVs are not included.
 
-## ディレクトリ構成
+## Directory Structure
 
 ```text
-github_experiment_code_package/
+anonymous_github_experiment_code/
   README.md
   README_JA.md
   requirements.txt
@@ -26,7 +27,6 @@ github_experiment_code_package/
   models/
   results/
   scripts/
-  scripts_abs/
   src/
     train/
     proposed/
@@ -34,11 +34,11 @@ github_experiment_code_package/
     analysis/
 ```
 
-## データ
+## Data
 
-全実験で同じMIMIR hard splitを使用します。
+All experiments use the same MIMIR hard split.
 
-以下の3つのCSVを配置してください。
+Place the following CSV files under:
 
 ```text
 data/mimir_hardsplit/
@@ -47,50 +47,51 @@ data/mimir_hardsplit/
   mimir_wikipedia_unseen_nonmember.csv
 ```
 
-各ファイルの意味は以下です。
+The files correspond to:
 
 ```text
 mimir_wikipedia_pt_member.csv
-  Pythia等の事前学習に含まれているとみなすPTデータ
+  PT data assumed to be included in pre-training.
 
 mimir_wikipedia_ft_nonmember.csv
-  LoRA fine-tuningに使用するFTデータ
+  FT data used for LoRA fine-tuning.
 
 mimir_wikipedia_unseen_nonmember.csv
-  事前学習にもFTにも使用しないUnseenデータ
+  Unseen data used neither for pre-training membership nor fine-tuning.
 ```
 
-データをGitHubに載せられない場合は、CSV本体は含めず、上記の場所に手動で配置してください。
+If the data cannot be redistributed, keep the directory structure and place the
+CSV files manually before running the experiments.
 
-## FTモデル
+## Fine-Tuned Models
 
-FT済みモデルcheckpointはGitHubには含めていません。
+Fine-tuned model checkpoints are not included in this repository.
 
-必要な場合は、以下に配置してください。
+Place checkpoints under:
 
 ```text
 models/
 ```
 
-または、`src/train/` 以下の学習コードを使って作成してください。
+Alternatively, create them using the training scripts under `src/train/`.
 
-主な学習コード:
+Main training scripts:
 
 ```text
 src/train/train_mimir_wikipedia_hardsplit_lora.py
 src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 
-## 提案手法
+## Proposed Method
 
-提案手法の主要コードは以下です。
+The main proposed-method code is:
 
 ```text
 src/proposed/mimir_hardsplit_attention_common.py
 src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
 ```
 
-モデル別のfixed-20実験用コード:
+Model-specific fixed-20 entry points:
 
 ```text
 src/proposed/experiment4_gptneo27b_fixed20_common.py
@@ -104,7 +105,8 @@ src/proposed/experiment4_pythia410m_fixed20_pt.py
 src/proposed/experiment4_pythia410m_fixed20_unseen.py
 ```
 
-20/50/100ステップおよびearly stoppingの停止条件比較は、以下を使います。
+Stopping-condition ablation entry points for fixed 20/50/100 steps and early
+stopping:
 
 ```text
 src/proposed/run_pythia1b_stopping_conditions.py
@@ -112,15 +114,16 @@ src/proposed/run_pythia410m_stopping_conditions.py
 src/proposed/run_gptneo27b_stopping_conditions.py
 ```
 
-内部では以下の共通コードを呼び出します。
+These scripts call the shared implementation:
 
 ```text
 src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
 ```
 
-## 解析コード
+## Analysis Code
 
-AUC、AUPRC、TPR@FPR、10回平均、比較手法との検定などを行うコードです。
+The following scripts compute AUC, AUPRC, TPR@FPR, repeated-run summaries, and
+baseline comparisons:
 
 ```text
 src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
@@ -130,12 +133,16 @@ src/analysis/run_strict_fixed20_3model_comparison_10runs.py
 src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```
 
-`run_strict_fixed20_3model_comparison_10runs.py` は、提案手法、AttenMIA、LoRA-Leak、Initial loss、Loss decreaseを同じ分割で比較します。
-`evaluate_loss_direction_selected_pythia1b.py` は、loss系のみをfold内方向選択で評価します。
+`run_strict_fixed20_3model_comparison_10runs.py` compares the proposed method,
+AttenMIA, LoRA-Leak, Initial loss, and Loss decrease using the same repeated
+cross-validation splits.
 
-## 比較手法
+`evaluate_loss_direction_selected_pythia1b.py` evaluates loss-only baselines
+with score direction selected inside each training fold.
 
-比較手法は `src/baselines/` にまとめています。
+## Baselines
+
+Baseline scripts are placed under `src/baselines/`.
 
 ```text
 src/baselines/run_attenmia_official_mimir_hardsplit.py
@@ -143,9 +150,9 @@ src/baselines/run_lora_leak_official_mimir_hardsplit.py
 src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 
-## 実行手順
+## Reproduction Order
 
-基本的には以下の順番です。
+The basic execution order is:
 
 ```bash
 pip install -r requirements.txt
@@ -156,7 +163,7 @@ bash scripts/03_analyze_gptneo27b.sh
 bash scripts/04_run_baselines.sh
 ```
 
-停止条件比較を実行する場合:
+To run the stopping-condition ablation:
 
 ```bash
 PYTHONPATH=src/proposed python src/proposed/run_pythia1b_stopping_conditions.py
@@ -164,33 +171,37 @@ PYTHONPATH=src/proposed python src/proposed/run_pythia410m_stopping_conditions.p
 PYTHONPATH=src/proposed python src/proposed/run_gptneo27b_stopping_conditions.py
 ```
 
-loss系を含む比較手法評価:
+To run the comparison including loss baselines:
 
 ```bash
 python src/analysis/run_strict_fixed20_3model_comparison_10runs.py
 python src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```
 
-絶対パスを使う環境では、環境変数でモデル・出力先を上書きしてください。
+For a different local environment, override model and output paths with
+environment variables.
 
-## GitHubに含めないもの
+## Files Not Included
 
-以下はGitHubには含めない方針です。
+The following files are intentionally excluded from GitHub:
 
 ```text
 __pycache__/
 *.pyc
 .DS_Store
-models/ 以下の大きいcheckpoint
-results/ 以下の大きい結果CSV
-一時的なplot
+large checkpoints under models/
+large result CSVs under results/
+temporary plot outputs
 ```
 
-このため、`models/` と `results/` には `.gitkeep` のみを置いています。
+Therefore, `models/` and `results/` contain only `.gitkeep` files by default.
 
-## 注意
+## Notes
 
-- FTをpositive classとして扱います。
-- AUCは結果を見て反転していません。
-- 提案手法のElastic Net特徴量選択はfold内でのみ行います。
-- 全モデル・全比較手法で同じMIMIR hard splitを使用します。
+- FT is always treated as the positive class.
+- AUC is not flipped after observing the result.
+- Elastic Net feature selection for the proposed method is performed only
+  inside each training fold.
+- All models and baselines use the same MIMIR hard split.
+
+Japanese documentation is available in `README_JA.md`.
