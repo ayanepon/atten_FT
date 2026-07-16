@@ -11,8 +11,6 @@
   - AttenMIA-style
   - LoRA-Leak-style
   - Min-K / Min-K++
-  - G-DriftMIA
-  - GDS
 
 大きなモデルcheckpointや生成済みの実験結果CSVは含めていません。
 
@@ -132,20 +130,6 @@ src/baselines/run_lora_leak_official_mimir_hardsplit.py
 src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 
-追加で実装した比較手法:
-
-```text
-src/baselines/run_g_driftmia_mimir_hardsplit.py
-src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
-src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
-src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
-
-src/baselines/run_gds_mimir_hardsplit.py
-src/baselines/run_gds_pythia1b_mimir_hardsplit.py
-src/baselines/run_gds_pythia410m_mimir_hardsplit.py
-src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
-```
-
 ## 実行手順
 
 基本的には以下の順番です。
@@ -160,22 +144,6 @@ bash scripts/04_run_baselines.sh
 ```
 
 絶対パスを使う環境では、`scripts_abs/` 以下のファイルを使用してください。
-
-## G-DriftMIAの実行
-
-```bash
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
-```
-
-## GDSの実行
-
-```bash
-PYTHONPATH=src/baselines python src/baselines/run_gds_pythia1b_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_gds_pythia410m_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
-```
 
 ## GitHubに含めないもの
 
@@ -198,4 +166,3 @@ results/ 以下の大きい結果CSV
 - AUCは結果を見て反転していません。
 - 提案手法のElastic Net特徴量選択はfold内でのみ行います。
 - 全モデル・全比較手法で同じMIMIR hard splitを使用します。
-

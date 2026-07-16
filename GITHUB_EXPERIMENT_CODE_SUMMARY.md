@@ -106,19 +106,6 @@ run_lora_leak_official_mimir_hardsplit_pythia410m.py
 compare_mink_strict_fixedstep_10runs.py
 ```
 
-Additional baselines added for the current experiments:
-
-```text
-run_g_driftmia_mimir_hardsplit.py
-run_g_driftmia_pythia1b_mimir_hardsplit.py
-run_g_driftmia_pythia410m_mimir_hardsplit.py
-run_g_driftmia_gptneo27b_mimir_hardsplit.py
-run_gds_mimir_hardsplit.py
-run_gds_pythia1b_mimir_hardsplit.py
-run_gds_pythia410m_mimir_hardsplit.py
-run_gds_gptneo27b_mimir_hardsplit.py
-```
-
 ## Canonical Data
 
 All experiments should use the same split files:
@@ -149,24 +136,6 @@ bash scripts/04_run_baselines.sh
 For Pythia-1B and Pythia-410M, use the corresponding model/checkpoint paths in
 the Python wrappers or analysis scripts.
 
-## Additional Baseline Runs
-
-G-DriftMIA:
-
-```bash
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
-```
-
-GDS:
-
-```bash
-PYTHONPATH=src/baselines python src/baselines/run_gds_pythia1b_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_gds_pythia410m_mimir_hardsplit.py
-PYTHONPATH=src/baselines python src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
-```
-
 ## Do Not Upload
 
 Avoid uploading:
@@ -182,4 +151,3 @@ personal local paths outside submission_artifact/
 ```
 
 If large files are required, use Git LFS or provide download instructions.
-

@@ -69,20 +69,6 @@ submission_artifact/src/baselines/run_lora_leak_official_mimir_hardsplit_pythia4
 submission_artifact/src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 
-Newly added baselines:
-
-```text
-submission_artifact/src/baselines/run_g_driftmia_mimir_hardsplit.py
-submission_artifact/src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
-submission_artifact/src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
-submission_artifact/src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
-
-submission_artifact/src/baselines/run_gds_mimir_hardsplit.py
-submission_artifact/src/baselines/run_gds_pythia1b_mimir_hardsplit.py
-submission_artifact/src/baselines/run_gds_pythia410m_mimir_hardsplit.py
-submission_artifact/src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
-```
-
 ## Data Assumption
 
 All methods use the same MIMIR hard split:
@@ -110,4 +96,3 @@ temporary plots
 ```
 
 Use Git LFS only if large checkpoints or result files must be shared.
-

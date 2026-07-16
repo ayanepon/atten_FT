@@ -11,8 +11,6 @@ This directory is the compact GitHub-ready code package for the experiments.
   - AttenMIA-style
   - LoRA-Leak-style
   - Min-K / Min-K++
-  - G-DriftMIA
-  - GDS
 - Reproduction scripts
 - Data placement instructions
 
@@ -57,4 +55,3 @@ data/mimir_hardsplit/mimir_wikipedia_unseen_nonmember.csv
 
 If these data files cannot be redistributed, keep the directory structure and
 place the files manually before running the experiments.
-
