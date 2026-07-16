@@ -11,6 +11,8 @@ This directory is the compact GitHub-ready code package for the experiments.
   - AttenMIA-style
   - LoRA-Leak-style
   - Min-K / Min-K++
+- Stopping-condition ablation entry points for fixed 20/50/100 and early stopping
+- Loss-baseline analysis entry points
 - Reproduction scripts
 - Data placement instructions
 

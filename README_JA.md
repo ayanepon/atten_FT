@@ -104,7 +104,15 @@ src/proposed/experiment4_pythia410m_fixed20_pt.py
 src/proposed/experiment4_pythia410m_fixed20_unseen.py
 ```
 
-Pythia-1Bについては、以下の共通コードにPythia-1Bのcheckpointパスを指定して実行します。
+20/50/100ステップおよびearly stoppingの停止条件比較は、以下を使います。
+
+```text
+src/proposed/run_pythia1b_stopping_conditions.py
+src/proposed/run_pythia410m_stopping_conditions.py
+src/proposed/run_gptneo27b_stopping_conditions.py
+```
+
+内部では以下の共通コードを呼び出します。
 
 ```text
 src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
@@ -118,7 +126,12 @@ AUC、AUPRC、TPR@FPR、10回平均、比較手法との検定などを行うコ
 src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
 src/analysis/compare_fixedstep_proposed_baselines_strict.py
 src/analysis/compare_proposed_attenmia_loraleak_10runs.py
+src/analysis/run_strict_fixed20_3model_comparison_10runs.py
+src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```
+
+`run_strict_fixed20_3model_comparison_10runs.py` は、提案手法、AttenMIA、LoRA-Leak、Initial loss、Loss decreaseを同じ分割で比較します。
+`evaluate_loss_direction_selected_pythia1b.py` は、loss系のみをfold内方向選択で評価します。
 
 ## 比較手法
 
@@ -143,7 +156,22 @@ bash scripts/03_analyze_gptneo27b.sh
 bash scripts/04_run_baselines.sh
 ```
 
-絶対パスを使う環境では、`scripts_abs/` 以下のファイルを使用してください。
+停止条件比較を実行する場合:
+
+```bash
+PYTHONPATH=src/proposed python src/proposed/run_pythia1b_stopping_conditions.py
+PYTHONPATH=src/proposed python src/proposed/run_pythia410m_stopping_conditions.py
+PYTHONPATH=src/proposed python src/proposed/run_gptneo27b_stopping_conditions.py
+```
+
+loss系を含む比較手法評価:
+
+```bash
+python src/analysis/run_strict_fixed20_3model_comparison_10runs.py
+python src/analysis/evaluate_loss_direction_selected_pythia1b.py
+```
+
+絶対パスを使う環境では、環境変数でモデル・出力先を上書きしてください。
 
 ## GitHubに含めないもの
 
