@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Direction-selected loss baselines for Pythia-1B fixed20.
+"""Direction-selected loss baselines for the three fixed-20 model settings.
 
 This script is designed for the stricter loss-baseline setting:
 
@@ -38,13 +38,23 @@ COMPARISONS = {
     "ft_vs_unseen": (GROUP_FT, GROUP_UNSEEN),
 }
 
-DEFAULT_1B_ROOT = (
-    "/workplace/FT/BlackNLP_2/results/"
-    "experiment4_mimir_hardsplit_stopping_condition"
-)
+MODEL_ROOTS = {
+    "pythia1b": (
+        "/workplace/FT/BlackNLP_2/results/"
+        "experiment4_mimir_hardsplit_stopping_condition"
+    ),
+    "pythia410m": (
+        "/workplace/FT/BlackNLP_2/results/"
+        "mimir_wikipedia_hardsplit_fixed20_pythia410m_rerun"
+    ),
+    "gptneo27b": (
+        "/workplace/FT/BlackNLP_2/results/"
+        "mimir_wikipedia_hardsplit_fixed20_gptneo27b"
+    ),
+}
 DEFAULT_OUTPUT_DIR = (
     "/workplace/FT/BlackNLP_2/results/"
-    "loss_direction_selected_pythia1b"
+    "loss_direction_selected_3model"
 )
 
 
@@ -341,8 +351,10 @@ def run_model(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pythia1b-root", default=DEFAULT_1B_ROOT)
     parser.add_argument("--output-dir", default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--models", nargs="+", default=["pythia1b", "pythia410m", "gptneo27b"], choices=list(MODEL_ROOTS.keys()))
+    for model, default_root in MODEL_ROOTS.items():
+        parser.add_argument(f"--{model}-root", default=default_root)
     parser.add_argument("--repeats", type=int, default=10)
     parser.add_argument("--cv-splits", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
@@ -361,21 +373,22 @@ def main() -> None:
     out.mkdir(parents=True, exist_ok=True)
 
     roots = {
-        "pythia1b": resolve_path(args.pythia1b_root, fixed20=True),
+        model: resolve_path(getattr(args, f"{model}_root"), fixed20=True)
+        for model in args.models
     }
 
     all_auc = []
     all_summary = []
-    model = "pythia1b"
-    auc, summary = run_model(model, roots[model], args, out)
-    all_auc.append(auc)
-    all_summary.append(summary)
+    for model in args.models:
+        auc, summary = run_model(model, roots[model], args, out)
+        all_auc.append(auc)
+        all_summary.append(summary)
 
     auc_df = pd.concat(all_auc, ignore_index=True)
     summary_df = pd.concat(all_summary, ignore_index=True)
 
-    auc_df.to_csv(out / "loss_direction_selected_auc_10runs_pythia1b.csv", index=False)
-    summary_df.to_csv(out / "loss_direction_selected_summary_pythia1b.csv", index=False)
+    auc_df.to_csv(out / "loss_direction_selected_auc_10runs.csv", index=False)
+    summary_df.to_csv(out / "loss_direction_selected_summary.csv", index=False)
 
     with open(out / "loss_direction_selected_config.json", "w", encoding="utf-8") as f:
         json.dump(

@@ -127,11 +127,11 @@ src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
 src/analysis/compare_fixedstep_proposed_baselines_strict.py
 src/analysis/compare_proposed_attenmia_loraleak_10runs.py
 src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-src/analysis/evaluate_loss_direction_selected_pythia1b.py
+src/analysis/evaluate_loss_direction_selected_3model.py
 ```
 
 `run_strict_fixed20_3model_comparison_10runs.py` は、提案手法、AttenMIA、LoRA-Leak、Initial loss、Loss decreaseを同じ分割で比較します。
-`evaluate_loss_direction_selected_pythia1b.py` は、loss系のみをfold内方向選択で評価します。
+`evaluate_loss_direction_selected_3model.py` は、Pythia-1B、Pythia-410M、GPT-Neo-2.7Bのloss系のみをfold内方向選択で評価します。
 
 ## 比較手法
 
@@ -171,7 +171,7 @@ loss系を含む比較手法評価:
 
 ```bash
 python src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-python src/analysis/evaluate_loss_direction_selected_pythia1b.py
+python src/analysis/evaluate_loss_direction_selected_3model.py
 ```
 
 絶対パスを使う環境では、環境変数でモデル・出力先を上書きしてください。

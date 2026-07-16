@@ -83,7 +83,7 @@ src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
 src/analysis/compare_fixedstep_proposed_baselines_strict.py
 src/analysis/compare_proposed_attenmia_loraleak_10runs.py
 src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-src/analysis/evaluate_loss_direction_selected_pythia1b.py
+src/analysis/evaluate_loss_direction_selected_3model.py
 ```
 
 These scripts compute AUC, AUPRC, TPR@FPR, repeated-run summaries, and

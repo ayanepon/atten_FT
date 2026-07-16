@@ -131,15 +131,16 @@ src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
 src/analysis/compare_fixedstep_proposed_baselines_strict.py
 src/analysis/compare_proposed_attenmia_loraleak_10runs.py
 src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-src/analysis/evaluate_loss_direction_selected_pythia1b.py
+src/analysis/evaluate_loss_direction_selected_3model.py
 ```
 
 `run_strict_fixed20_3model_comparison_10runs.py` compares the proposed method,
 AttenMIA, LoRA-Leak, Initial loss, and Loss decrease using the same repeated
 cross-validation splits.
 
-`evaluate_loss_direction_selected_pythia1b.py` evaluates loss-only baselines
-with score direction selected inside each training fold.
+`evaluate_loss_direction_selected_3model.py` evaluates loss-only baselines
+for Pythia-1B, Pythia-410M, and GPT-Neo-2.7B with score direction selected
+inside each training fold.
 
 ## Baselines
 
@@ -179,7 +180,7 @@ To run the comparison including loss baselines:
 
 ```bash
 python src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-python src/analysis/evaluate_loss_direction_selected_pythia1b.py
+python src/analysis/evaluate_loss_direction_selected_3model.py
 ```
 
 For a different local environment, override model and output paths with
