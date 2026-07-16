@@ -1,255 +1,201 @@
-# MIMIR Hard-Split Attention Update Experiments
+# 実験コード一式
 
-This artifact contains the code needed to reproduce the main experiments:
+このディレクトリは、論文実験で使用したコードをGitHubに公開しやすい形でまとめたものです。
 
-- LoRA fine-tuning on the MIMIR Wikipedia hard split
-- Proposed fixed-step Attention update extraction
-- FT vs PT and FT vs Unseen classification
-- AttenMIA-style, LoRA-Leak-style, Min-k%, and Min-k%++ baselines
+主に以下を含みます。
 
-All paths are relative to this artifact directory. The shell scripts under
-`scripts/` are the recommended entry points for reproduction. The Python files
-under `src/` implement the underlying training, extraction, baseline, and
-analysis routines.
+- 提案手法のAttention更新量抽出コード
+- LoRA fine-tuningコード
+- AUC / AUPRC / TPRを計算する解析コード
+- 比較手法のコード
+  - AttenMIA-style
+  - LoRA-Leak-style
+  - Min-K / Min-K++
+  - G-DriftMIA
+  - GDS
 
-## Directory layout
+大きなモデルcheckpointや生成済みの実験結果CSVは含めていません。
+
+## ディレクトリ構成
 
 ```text
-configs/
-  paths.json
-data/
-  mimir_hardsplit/
-models/
-results/
-scripts/
-src/
-  train/
-  proposed/
-  baselines/
-  analysis/
+github_experiment_code_package/
+  README.md
+  README_JA.md
+  requirements.txt
+  configs/
+  data/
+  models/
+  results/
+  scripts/
+  scripts_abs/
+  src/
+    train/
+    proposed/
+    baselines/
+    analysis/
 ```
 
-## Before Running
+## データ
 
-Run all commands from the artifact root:
+全実験で同じMIMIR hard splitを使用します。
 
-```bash
-cd submission_artifact
-```
-
-Install the required Python packages in your environment:
-
-```bash
-pip install -r requirements.txt
-```
-
-The experiments download Hugging Face models and datasets when they are not
-already cached. A CUDA GPU is recommended for LoRA fine-tuning and attention
-extraction.
-
-## Data Placement
-
-The MIMIR Wikipedia hard-split CSV files are placed here:
+以下の3つのCSVを配置してください。
 
 ```text
 data/mimir_hardsplit/
   mimir_wikipedia_pt_member.csv
   mimir_wikipedia_ft_nonmember.csv
   mimir_wikipedia_unseen_nonmember.csv
-  mimir_wikipedia_pt_ft_unseen_targets.csv
 ```
 
-The same split CSVs should be reused across Pythia and GPT-Neo experiments.
-
-For fair cross-model and cross-method comparison, use these CSV files as the
-single shared data split for all experiments. Do not regenerate separate
-FT/PT/Unseen splits for each model.
-
-## Reproduction Steps
-
-The following commands reproduce the main GPT-Neo 1.3B experiment. Run them in
-order. The GPT-Neo 2.7B experiment uses the same data splits and the same
-workflow; see the GPT-Neo 2.7B commands below.
-
-### Step 0: Prepare the Data Splits
-
-```bash
-bash scripts/00_prepare_splits.sh
-```
-
-This creates the MIMIR hard-split CSV files and copies them to:
+各ファイルの意味は以下です。
 
 ```text
-data/mimir_hardsplit/
+mimir_wikipedia_pt_member.csv
+  Pythia等の事前学習に含まれているとみなすPTデータ
+
+mimir_wikipedia_ft_nonmember.csv
+  LoRA fine-tuningに使用するFTデータ
+
+mimir_wikipedia_unseen_nonmember.csv
+  事前学習にもFTにも使用しないUnseenデータ
 ```
 
-These files are the canonical split files for this artifact. Later training,
-attention-extraction, and baseline runs should use this same split.
+データをGitHubに載せられない場合は、CSV本体は含めず、上記の場所に手動で配置してください。
 
-Expected files:
+## FTモデル
+
+FT済みモデルcheckpointはGitHubには含めていません。
+
+必要な場合は、以下に配置してください。
 
 ```text
-data/mimir_hardsplit/mimir_wikipedia_pt_member.csv
-data/mimir_hardsplit/mimir_wikipedia_ft_nonmember.csv
-data/mimir_hardsplit/mimir_wikipedia_unseen_nonmember.csv
-data/mimir_hardsplit/mimir_wikipedia_pt_ft_unseen_targets.csv
+models/
 ```
 
-### Step 1: Fine-tune the Target Model
+または、`src/train/` 以下の学習コードを使って作成してください。
 
-```bash
-bash scripts/01_train_gptneo13b.sh
-```
-
-This fine-tunes GPT-Neo 1.3B with LoRA on the FT split.
-The script explicitly reads the shared split files from:
+主な学習コード:
 
 ```text
-data/mimir_hardsplit/
+src/train/train_mimir_wikipedia_hardsplit_lora.py
+src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 
-Expected output:
+## 提案手法
+
+提案手法の主要コードは以下です。
 
 ```text
-models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_gptneo13b/
+src/proposed/mimir_hardsplit_attention_common.py
+src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
 ```
 
-### Step 2: Extract Fixed-20 Attention Updates
-
-```bash
-bash scripts/02_extract_fixed20_gptneo13b.sh
-```
-
-This extracts the proposed fixed-20-step attention-update features for FT, PT,
-and Unseen samples.
-
-Expected outputs:
+モデル別のfixed-20実験用コード:
 
 ```text
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/fixed_attention_20_ft/
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/fixed_attention_20_pt/
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/fixed_attention_20_unseen/
+src/proposed/experiment4_gptneo27b_fixed20_common.py
+src/proposed/experiment4_gptneo27b_fixed20_ft.py
+src/proposed/experiment4_gptneo27b_fixed20_pt.py
+src/proposed/experiment4_gptneo27b_fixed20_unseen.py
+
+src/proposed/experiment4_pythia410m_fixed20_common.py
+src/proposed/experiment4_pythia410m_fixed20_ft.py
+src/proposed/experiment4_pythia410m_fixed20_pt.py
+src/proposed/experiment4_pythia410m_fixed20_unseen.py
 ```
 
-This step is the slowest part of the proposed method. If multiple GPUs are
-available, the three groups can be extracted separately:
-
-```bash
-CUDA_VISIBLE_DEVICES=0 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo13b_fixed20_ft.py
-CUDA_VISIBLE_DEVICES=1 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo13b_fixed20_pt.py
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo13b_fixed20_unseen.py
-```
-
-### Step 3: Analyze Proposed-Method Results
-
-```bash
-bash scripts/03_analyze_gptneo13b.sh
-```
-
-This computes FT vs PT and FT vs Unseen classification results from the
-fixed-20 attention-update features.
-
-Main output:
+Pythia-1Bについては、以下の共通コードにPythia-1Bのcheckpointパスを指定して実行します。
 
 ```text
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/ft_vs_pt_unseen_auc_analysis/repeated_auc_summary.csv
+src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
 ```
 
-### Step 4: Run Baselines
+## 解析コード
 
-```bash
-bash scripts/04_run_baselines.sh
-```
-
-This runs the AttenMIA-style, LoRA-Leak-style, Min-k%, and Min-k%++ baselines.
-The default baseline script uses the Pythia-1B run directory:
+AUC、AUPRC、TPR@FPR、10回平均、比較手法との検定などを行うコードです。
 
 ```text
-models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_2/
+src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
+src/analysis/compare_fixedstep_proposed_baselines_strict.py
+src/analysis/compare_proposed_attenmia_loraleak_10runs.py
 ```
 
-If this model is not present, train or copy the corresponding Pythia-1B LoRA
-model before running the baseline script, or edit the script to point to the
-model you want to evaluate.
+## 比較手法
 
-When using a copied or pre-existing model directory, confirm that its `data/`
-subdirectory contains the same split CSVs as `data/mimir_hardsplit/`.
+比較手法は `src/baselines/` にまとめています。
 
-## GPT-Neo 2.7B Experiment
+```text
+src/baselines/run_attenmia_official_mimir_hardsplit.py
+src/baselines/run_lora_leak_official_mimir_hardsplit.py
+src/baselines/compare_mink_strict_fixedstep_10runs.py
+```
 
-GPT-Neo 2.7B uses the same canonical split files in `data/mimir_hardsplit/`.
-Run Step 0 first if the split files do not already exist.
+追加で実装した比較手法:
+
+```text
+src/baselines/run_g_driftmia_mimir_hardsplit.py
+src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
+src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
+src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
+
+src/baselines/run_gds_mimir_hardsplit.py
+src/baselines/run_gds_pythia1b_mimir_hardsplit.py
+src/baselines/run_gds_pythia410m_mimir_hardsplit.py
+src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
+```
+
+## 実行手順
+
+基本的には以下の順番です。
 
 ```bash
+pip install -r requirements.txt
 bash scripts/00_prepare_splits.sh
 bash scripts/01_train_gptneo27b.sh
 bash scripts/02_extract_fixed20_gptneo27b.sh
 bash scripts/03_analyze_gptneo27b.sh
+bash scripts/04_run_baselines.sh
 ```
 
-Expected model output:
+絶対パスを使う環境では、`scripts_abs/` 以下のファイルを使用してください。
 
-```text
-models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_gptneo27b/
-```
-
-Expected proposed-method outputs:
-
-```text
-results/mimir_wikipedia_hardsplit_fixed20_gptneo27b/fixed_attention_20_ft/
-results/mimir_wikipedia_hardsplit_fixed20_gptneo27b/fixed_attention_20_pt/
-results/mimir_wikipedia_hardsplit_fixed20_gptneo27b/fixed_attention_20_unseen/
-results/mimir_wikipedia_hardsplit_fixed20_gptneo27b/ft_vs_pt_unseen_auc_analysis/
-```
-
-As with GPT-Neo 1.3B, fixed-20 extraction can be split across GPUs:
+## G-DriftMIAの実行
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo27b_fixed20_ft.py
-CUDA_VISIBLE_DEVICES=1 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo27b_fixed20_pt.py
-CUDA_VISIBLE_DEVICES=2 PYTHONPATH=src/proposed python src/proposed/experiment4_gptneo27b_fixed20_unseen.py
+PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia1b_mimir_hardsplit.py
+PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_pythia410m_mimir_hardsplit.py
+PYTHONPATH=src/baselines python src/baselines/run_g_driftmia_gptneo27b_mimir_hardsplit.py
 ```
 
-## Main outputs
+## GDSの実行
+
+```bash
+PYTHONPATH=src/baselines python src/baselines/run_gds_pythia1b_mimir_hardsplit.py
+PYTHONPATH=src/baselines python src/baselines/run_gds_pythia410m_mimir_hardsplit.py
+PYTHONPATH=src/baselines python src/baselines/run_gds_gptneo27b_mimir_hardsplit.py
+```
+
+## GitHubに含めないもの
+
+以下はGitHubには含めない方針です。
 
 ```text
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/
-  fixed_attention_20_ft/
-  fixed_attention_20_pt/
-  fixed_attention_20_unseen/
-  ft_vs_pt_unseen_auc_analysis/
+__pycache__/
+*.pyc
+.DS_Store
+models/ 以下の大きいcheckpoint
+results/ 以下の大きい結果CSV
+一時的なplot
 ```
 
-The main analysis output is:
+このため、`models/` と `results/` には `.gitkeep` のみを置いています。
 
-```text
-results/mimir_wikipedia_hardsplit_fixed20_gptneo13b/ft_vs_pt_unseen_auc_analysis/repeated_auc_summary.csv
-```
+## 注意
 
-## Baseline fidelity notes
+- FTをpositive classとして扱います。
+- AUCは結果を見て反転していません。
+- 提案手法のElastic Net特徴量選択はfold内でのみ行います。
+- 全モデル・全比較手法で同じMIMIR hard splitを使用します。
 
-See also:
-
-```text
-BASELINE_FIDELITY.md
-```
-
-The baseline implementations are intended to be faithful enough for controlled comparison, but their status differs by method.
-
-- Min-k%: implemented directly from the standard Min-k% probability idea using the lowest-probability token subset.
-- Min-k%++: implemented using standardized token log-probabilities, matching the key idea of Min-k%++.
-- LoRA-Leak-style: includes target loss, zlib-normalized loss, Min-k%, Min-k%++, GradNormx, and pretrained-reference variants. This follows the LoRA-Leak paper's evaluation idea that the pretrained model can act as a reference for LoRA fine-tuning leakage.
-- AttenMIA-style: uses attention-derived features, perturbation features, and an MLP classifier. It follows the AttenMIA paper's high-level design, but should be described as an AttenMIA-style reimplementation unless directly validated against the authors' official code.
-
-For the paper, avoid saying "official implementation" for AttenMIA unless the exact authors' code is used. Recommended wording:
-
-```text
-We implement an AttenMIA-style baseline based on attention transition and perturbation features, and evaluate it under the same folds as the proposed method.
-```
-
-## Notes
-
-- FT is treated as the positive class in FT vs PT and FT vs Unseen.
-- AUC is not flipped after observing results.
-- Elastic Net feature selection is performed inside each training fold only.
-- The fixed-20 condition means 20 optimizer steps for each target sample during the per-sample additional training phase.
