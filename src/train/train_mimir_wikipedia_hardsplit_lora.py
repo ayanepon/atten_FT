@@ -32,7 +32,7 @@ import pandas as pd
 import torch
 
 
-BASE_MODEL_NAME = "EleutherAI/pythia-410m"
+BASE_MODEL_NAME = "EleutherAI/pythia-1b"
 MIMIR_NAME = "iamgroot42/mimir"
 MIMIR_CONFIG = "wikipedia_(en)"
 MIMIR_SPLIT = "ngram_13_0.8"
@@ -44,7 +44,7 @@ GROUP_PT = "mimir_wikipedia_member_pt"
 GROUP_FT = "mimir_wikipedia_nonmember_ft"
 GROUP_UNSEEN = "mimir_wikipedia_nonmember_unseen"
 
-DEFAULT_OUTPUT_DIR = "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_pythia410m"
+DEFAULT_OUTPUT_DIR = "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_2"
 
 
 def set_seed(seed: int) -> None:

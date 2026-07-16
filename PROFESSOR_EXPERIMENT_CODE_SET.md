@@ -47,6 +47,7 @@ src/proposed/run_gptneo27b_stopping_conditions.py
 
 ```text
 src/train/train_mimir_wikipedia_hardsplit_lora.py
+src/train/train_mimir_wikipedia_hardsplit_lora_pythia410m.py
 src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 

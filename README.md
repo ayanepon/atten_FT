@@ -79,6 +79,7 @@ Main training scripts:
 
 ```text
 src/train/train_mimir_wikipedia_hardsplit_lora.py
+src/train/train_mimir_wikipedia_hardsplit_lora_pythia410m.py
 src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
 ```
 
@@ -159,6 +160,7 @@ The basic execution order is:
 ```bash
 pip install -r requirements.txt
 bash scripts/00_prepare_splits.sh
+bash scripts/01_train_pythia410m.sh
 bash scripts/01_train_gptneo27b.sh
 bash scripts/02_extract_fixed20_gptneo27b.sh
 bash scripts/03_analyze_gptneo27b.sh
