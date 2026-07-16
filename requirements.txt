@@ -1,0 +1,12 @@
+torch
+transformers
+peft
+datasets
+numpy
+pandas
+scipy
+scikit-learn
+statsmodels
+tqdm
+matplotlib
+safetensors
