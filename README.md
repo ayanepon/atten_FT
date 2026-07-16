@@ -146,7 +146,9 @@ Baseline scripts are placed under `src/baselines/`.
 
 ```text
 src/baselines/run_attenmia_official_mimir_hardsplit.py
+src/baselines/run_attenmia_official_mimir_hardsplit_gptneo27b.py
 src/baselines/run_lora_leak_official_mimir_hardsplit.py
+src/baselines/run_lora_leak_official_mimir_hardsplit_gptneo27b.py
 src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 

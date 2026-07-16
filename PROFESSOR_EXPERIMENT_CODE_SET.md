@@ -65,8 +65,10 @@ src/analysis/evaluate_loss_direction_selected_pythia1b.py
 ```text
 src/baselines/run_attenmia_official_mimir_hardsplit.py
 src/baselines/run_attenmia_official_mimir_hardsplit_pythia410m.py
+src/baselines/run_attenmia_official_mimir_hardsplit_gptneo27b.py
 src/baselines/run_lora_leak_official_mimir_hardsplit.py
 src/baselines/run_lora_leak_official_mimir_hardsplit_pythia410m.py
+src/baselines/run_lora_leak_official_mimir_hardsplit_gptneo27b.py
 src/baselines/compare_mink_strict_fixedstep_10runs.py
 ```
 

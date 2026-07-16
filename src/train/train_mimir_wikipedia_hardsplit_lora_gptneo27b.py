@@ -2,7 +2,7 @@
 """
 LoRA fine-tuning on the MIMIR Wikipedia hard split for EleutherAI/gpt-neo-2.7B.
 
-This script reuses the same shared split CSVs as the Pythia and GPT-Neo-1.3B
+This script reuses the same shared split CSVs as the Pythia experiments
 experiments, so the FT/PT/Unseen examples remain identical across models.
 """
 

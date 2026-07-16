@@ -6,7 +6,5 @@
   "mimir_split_data_dir": "data/mimir_hardsplit",
   "pythia1b_model_dir": "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_2",
   "pythia410m_model_dir": "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_pythia410m",
-  "pythia69b_model_dir": "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_pythia69b",
-  "gptneo13b_model_dir": "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_gptneo13b",
   "gptneo27b_model_dir": "models/mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_gptneo27b"
 }
