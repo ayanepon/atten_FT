@@ -26,6 +26,7 @@ anonymous_github_experiment_code/
   models/
   results/
   scripts/
+  supplement/
   src/
     train/
     proposed/
@@ -132,6 +133,25 @@ src/analysis/evaluate_loss_direction_selected_3model.py
 
 `run_strict_fixed20_3model_comparison_10runs.py` は、提案手法、AttenMIA、LoRA-Leak、Initial loss、Loss decreaseを同じ分割で比較します。
 `evaluate_loss_direction_selected_3model.py` は、Pythia-1B、Pythia-410M、GPT-Neo-2.7Bのloss系のみをfold内方向選択で評価します。
+
+## 追加supplementコード
+
+論文実験で使用した追加コードは以下に入れています。
+
+```text
+supplement/
+```
+
+ここには、元のpaper pipeline、orchestration用コード、robustness check、reviewer follow-up実験、CPU-only testなどが含まれます。
+整理済みのトップレベルコードと混ざらないよう、別ディレクトリとして保持しています。
+
+まず以下を確認してください。
+
+```text
+supplement/README.md
+supplement/PAPER_ALIGNMENT.md
+supplement/STRUCTURE.md
+```
 
 ## 比較手法
 

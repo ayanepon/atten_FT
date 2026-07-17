@@ -12,7 +12,20 @@ anonymous_github_experiment_code/
 ```
 
 It contains the organized training, proposed-method, baseline, and analysis
-code. Large checkpoints and raw result CSVs are intentionally excluded.
+code. Additional original paper-pipeline and reviewer-follow-up code is under
+`supplement/`. Large checkpoints and raw result CSVs are intentionally excluded.
+
+## Supplementary Original Pipeline
+
+```text
+supplement/README.md
+supplement/PAPER_ALIGNMENT.md
+supplement/STRUCTURE.md
+```
+
+The `supplement/` directory contains the original paper pipeline, orchestration
+utilities, robustness checks, reviewer-follow-up experiments, and CPU-only
+tests.
 
 ## Main Proposed Method Code
 

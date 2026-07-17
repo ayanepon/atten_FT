@@ -13,6 +13,7 @@ This directory is the compact GitHub-ready code package for the experiments.
   - Min-K / Min-K++
 - Stopping-condition ablation entry points for fixed 20/50/100 and early stopping
 - Loss-baseline analysis entry points
+- Supplementary original paper pipeline and reviewer-follow-up code under `supplement/`
 - Reproduction scripts
 - Data placement instructions
 

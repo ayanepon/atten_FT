@@ -18,6 +18,7 @@ anonymous_github_experiment_code/
   models/
   results/
   scripts/
+  supplement/
   src/
 ```
 
@@ -48,6 +49,23 @@ src/proposed/experiment4_pythia410m_fixed20_unseen.py
 src/proposed/run_pythia1b_stopping_conditions.py
 src/proposed/run_pythia410m_stopping_conditions.py
 src/proposed/run_gptneo27b_stopping_conditions.py
+```
+
+## Supplementary Original Pipeline
+
+Additional code used for the paper experiments is included under:
+
+```text
+supplement/
+```
+
+This directory contains the original paper pipeline, orchestration utilities,
+robustness checks, reviewer-follow-up experiments, and CPU-only tests. See:
+
+```text
+supplement/README.md
+supplement/PAPER_ALIGNMENT.md
+supplement/STRUCTURE.md
 ```
 
 ## Training Code

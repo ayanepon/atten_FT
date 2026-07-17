@@ -27,6 +27,7 @@ anonymous_github_experiment_code/
   models/
   results/
   scripts/
+  supplement/
   src/
     train/
     proposed/
@@ -141,6 +142,27 @@ cross-validation splits.
 `evaluate_loss_direction_selected_3model.py` evaluates loss-only baselines
 for Pythia-1B, Pythia-410M, and GPT-Neo-2.7B with score direction selected
 inside each training fold.
+
+## Supplementary Code
+
+Additional code used for the paper experiments is provided under:
+
+```text
+supplement/
+```
+
+This directory contains the original paper pipeline, orchestration utilities,
+robustness checks, reviewer-follow-up experiments, and CPU-only integrity
+tests. It is kept separate from the compact reproduction code to avoid mixing
+legacy entry points with the cleaned top-level scripts.
+
+Start from:
+
+```text
+supplement/README.md
+supplement/PAPER_ALIGNMENT.md
+supplement/STRUCTURE.md
+```
 
 ## Baselines
 
