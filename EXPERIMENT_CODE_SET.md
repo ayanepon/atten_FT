@@ -1,6 +1,6 @@
-# Professor Experiment Code Set
+# Experiment Code Set
 
-This repository is the compact code set prepared for GitHub. Paths below are
+This repository is the compact code set prepared for reproducibility. Paths below are
 relative to the repository root.
 
 ## Upload Directory
