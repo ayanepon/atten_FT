@@ -1,234 +1,120 @@
-# Experiment Code
+# Anonymous experiment code supplement
 
-This repository contains the code used for the paper experiments in a compact
-GitHub-ready form.
+This directory contains the experiment programs used for the paper, including
+the original experiments, baselines, robustness checks, and reviewer-follow-up
+experiments E7--E12. All documentation, module docstrings, and source comments
+are in English.
 
-It includes:
+The code is provided for reviewer inspection and reproducibility. Model
+weights, raw datasets, raw attention tensors, and per-sample scores are not
+included.
 
-- proposed attention-update feature extraction code
-- LoRA fine-tuning code
-- analysis code for AUC, AUPRC, TPR@FPR, repeated runs, and significance tests
-- baseline implementations
-  - AttenMIA-style baseline
-  - LoRA-Leak-style baseline
-  - Min-K / Min-K++ baselines
+## Quick start
 
-Large model checkpoints and generated result CSVs are not included.
-
-## Directory Structure
-
-```text
-anonymous_github_experiment_code/
-  README.md
-  README_JA.md
-  requirements.txt
-  configs/
-  data/
-  models/
-  results/
-  scripts/
-  supplement/
-  src/
-    train/
-    proposed/
-    baselines/
-    analysis/
-```
-
-## Data
-
-All experiments use the same MIMIR hard split.
-
-Place the following CSV files under:
-
-```text
-data/mimir_hardsplit/
-  mimir_wikipedia_pt_member.csv
-  mimir_wikipedia_ft_nonmember.csv
-  mimir_wikipedia_unseen_nonmember.csv
-```
-
-The files correspond to:
-
-```text
-mimir_wikipedia_pt_member.csv
-  PT data assumed to be included in pre-training.
-
-mimir_wikipedia_ft_nonmember.csv
-  FT data used for LoRA fine-tuning.
-
-mimir_wikipedia_unseen_nonmember.csv
-  Unseen data used neither for pre-training membership nor fine-tuning.
-```
-
-If the data cannot be redistributed, keep the directory structure and place the
-CSV files manually before running the experiments.
-
-## Fine-Tuned Models
-
-Fine-tuned model checkpoints are not included in this repository.
-
-Place checkpoints under:
-
-```text
-models/
-```
-
-Alternatively, create them using the training scripts under `src/train/`.
-
-Main training scripts:
-
-```text
-src/train/train_mimir_wikipedia_hardsplit_lora.py
-src/train/train_mimir_wikipedia_hardsplit_lora_pythia410m.py
-src/train/train_mimir_wikipedia_hardsplit_lora_gptneo27b.py
-```
-
-## Proposed Method
-
-The main proposed-method code is:
-
-```text
-src/proposed/mimir_hardsplit_attention_common.py
-src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
-```
-
-Model-specific fixed-20 entry points:
-
-```text
-src/proposed/experiment4_gptneo27b_fixed20_common.py
-src/proposed/experiment4_gptneo27b_fixed20_ft.py
-src/proposed/experiment4_gptneo27b_fixed20_pt.py
-src/proposed/experiment4_gptneo27b_fixed20_unseen.py
-
-src/proposed/experiment4_pythia410m_fixed20_common.py
-src/proposed/experiment4_pythia410m_fixed20_ft.py
-src/proposed/experiment4_pythia410m_fixed20_pt.py
-src/proposed/experiment4_pythia410m_fixed20_unseen.py
-```
-
-Stopping-condition ablation entry points for fixed 20/50/100 steps and early
-stopping:
-
-```text
-src/proposed/run_pythia1b_stopping_conditions.py
-src/proposed/run_pythia410m_stopping_conditions.py
-src/proposed/run_gptneo27b_stopping_conditions.py
-```
-
-These scripts call the shared implementation:
-
-```text
-src/proposed/experiment4_mimir_hardsplit_stopping_condition.py
-```
-
-## Analysis Code
-
-The following scripts compute AUC, AUPRC, TPR@FPR, repeated-run summaries, and
-baseline comparisons:
-
-```text
-src/analysis/analyze_mimir_fixed_steps_repeated_auc.py
-src/analysis/compare_fixedstep_proposed_baselines_strict.py
-src/analysis/compare_proposed_attenmia_loraleak_10runs.py
-src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-src/analysis/evaluate_loss_direction_selected_3model.py
-```
-
-`run_strict_fixed20_3model_comparison_10runs.py` compares the proposed method,
-AttenMIA, LoRA-Leak, Initial loss, and Loss decrease using the same repeated
-cross-validation splits.
-
-`evaluate_loss_direction_selected_3model.py` evaluates loss-only baselines
-for Pythia-1B, Pythia-410M, and GPT-Neo-2.7B with score direction selected
-inside each training fold.
-
-## Supplementary Code
-
-Additional code used for the paper experiments is provided under:
-
-```text
-supplement/
-```
-
-This directory contains the original paper pipeline, orchestration utilities,
-robustness checks, reviewer-follow-up experiments, and CPU-only integrity
-tests. It is kept separate from the compact reproduction code to avoid mixing
-legacy entry points with the cleaned top-level scripts.
-
-Start from:
-
-```text
-supplement/README.md
-supplement/PAPER_ALIGNMENT.md
-supplement/STRUCTURE.md
-```
-
-## Baselines
-
-Baseline scripts are placed under `src/baselines/`.
-
-```text
-src/baselines/run_attenmia_official_mimir_hardsplit.py
-src/baselines/run_attenmia_official_mimir_hardsplit_gptneo27b.py
-src/baselines/run_lora_leak_official_mimir_hardsplit.py
-src/baselines/run_lora_leak_official_mimir_hardsplit_gptneo27b.py
-src/baselines/compare_mink_strict_fixedstep_10runs.py
-```
-
-## Reproduction Order
-
-The basic execution order is:
+Run all commands from this directory:
 
 ```bash
-pip install -r requirements.txt
-bash scripts/00_prepare_splits.sh
-bash scripts/01_train_pythia410m.sh
-bash scripts/01_train_gptneo27b.sh
-bash scripts/02_extract_fixed20_gptneo27b.sh
-bash scripts/03_analyze_gptneo27b.sh
-bash scripts/04_run_baselines.sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+
+# CPU-only integrity and protocol tests
+PYTHONPATH=. python -m unittest -q \
+  test_reviewer_followup test_additional_experiments test_multi_model
+
+# Inspect the original experiment plan without launching jobs
+./run_paper_experiments.sh plan
+
+# Materialize and inspect the E7--E12 command plan
+PYTHONPATH=. python -m reviewer_followup.controller plan \
+  --output-root results/reviewer_followup
+PYTHONPATH=. python -m reviewer_followup.controller status \
+  --output-root results/reviewer_followup
 ```
 
-To run the stopping-condition ablation:
+GPU stages are never launched by the reviewer-follow-up controller without
+`--yes-really-run-gpu`. Before using those stages, set `GPU_STATUS_URL` to a
+site-local endpoint returning the GPU-status JSON expected by
+`reviewer_followup.controller`:
 
 ```bash
-PYTHONPATH=src/proposed python src/proposed/run_pythia1b_stopping_conditions.py
-PYTHONPATH=src/proposed python src/proposed/run_pythia410m_stopping_conditions.py
-PYTHONPATH=src/proposed python src/proposed/run_gptneo27b_stopping_conditions.py
+export GPU_STATUS_URL=https://example.edu/api/gpu/status
 ```
 
-To run the comparison including loss baselines:
+## Directory map
+
+- `run_paper_experiments.py` and `run_paper_experiments.sh`: full original
+  paper pipeline across models and Experiments 1--3.
+- `orchestrate.py` and `orchestrate.sh`: single-model train, extract, baseline,
+  analysis, and evaluation driver.
+- `train_mimir_wikipedia_hardsplit_lora.py`: LoRA fine-tuning on the MIMIR
+  Wikipedia hard split.
+- `extract_attention_hardsplit.py` and
+  `mimir_hardsplit_attention_common.py`: target-specific additional training
+  and attention-update feature extraction.
+- `experiment4_*`: model- and group-specific fixed-step or early-stopping
+  extraction entry points.
+- `run_strict_fixed20_comparison_10runs.py`: repeated stratified evaluation of
+  the proposed features and baselines.
+- `run_attenmia_official_mimir_hardsplit*.py` and
+  `run_lora_leak_official_mimir_hardsplit*.py`: AttenMIA and LoRA-Leak
+  baselines.
+- `run_crossfit_fusion_en_lora_leak.py`: leakage-safe, cross-fitted score
+  fusion.
+- `run_nested_step_selection.py`, `run_paired_robustness.py`,
+  `run_data_confound_diagnostics.py`, and the `run_*sensitivity*.sh` scripts:
+  step selection, multi-run robustness, and confound controls.
+- `analyze_exp1_layer_head_significance.py`: FDR-corrected layer--head
+  localization and effect-size analysis.
+- `reviewer_followup/`: self-contained E7--E12 package for crossed designs,
+  update-feature baselines, checkpoint stability, a controlled model-family
+  study, full nested protocol selection, shard merging, and final audits.
+- `hardsplit/`: shared model, AMP, progress, sharding, and CLI utilities.
+- `test_reviewer_followup.py`, `test_additional_experiments.py`, and
+  `test_multi_model.py`: CPU-only tests.
+- `PAPER_ALIGNMENT.md` and `STRUCTURE.md`: detailed script-to-paper mapping and
+  performance-oriented code layout.
+
+## Reviewer-follow-up workflow (E7--E12)
+
+The controller first freezes every argv vector, seed, expected output, and GPU
+flag in `experiment_plan.json`:
 
 ```bash
-python src/analysis/run_strict_fixed20_3model_comparison_10runs.py
-python src/analysis/evaluate_loss_direction_selected_3model.py
+PYTHONPATH=. python -m reviewer_followup.controller prepare \
+  --output-root results/reviewer_followup
+PYTHONPATH=. python -m reviewer_followup.controller run-stage \
+  --stage e7 --output-root results/reviewer_followup \
+  --yes-really-run-gpu
 ```
 
-For a different local environment, override model and output paths with
-environment variables.
+Dependencies are E7 -> E8, E9 -> E10, and E12 extraction shards -> validated
+merge -> two nested evaluations. E11 is independent. E12 evaluates 80 raw
+attention candidates per sample (20 query protocols times four update
+schedules); its sample-level training summary contains four update schedules
+per sample.
 
-## Files Not Included
+Completion is intentionally strict. Each command must produce all declared,
+non-empty outputs and a matching controller marker. JSON must parse, CSV files
+must contain a header and data, extraction runs must record a completed status,
+and the E12 merge must cover all 1,500 target IDs. The final audit is:
 
-The following files are intentionally excluded from GitHub:
-
-```text
-__pycache__/
-*.pyc
-.DS_Store
-large checkpoints under models/
-large result CSVs under results/
-temporary plot outputs
+```bash
+PYTHONPATH=. python -m reviewer_followup.audit_results \
+  --output-root results/reviewer_followup
 ```
 
-Therefore, `models/` and `results/` contain only `.gitkeep` files by default.
+## Data and model inputs
 
-## Notes
+The scripts expect the MIMIR Wikipedia hard-split CSVs and compatible
+Hugging Face base models/LoRA adapters. Default model identifiers and LoRA
+module mappings are defined in `model_registry.py`. Paths can be overridden by
+the documented command-line arguments; inspect `--help` before a full run.
 
-- FT is always treated as the positive class.
-- AUC is not flipped after observing the result.
-- Elastic Net feature selection for the proposed method is performed only
-  inside each training fold.
-- All models and baselines use the same MIMIR hard split.
+## Anonymization and exclusions
 
-Japanese documentation is available in `README_JA.md`.
+Hostnames, usernames, institutional paths, and the original GPU-status URL are
+replaced by generic placeholders. The supplement contains no credentials,
+weights, raw feature dumps, canonical result archive, or per-sample membership
+decisions. Aggregate paper values therefore remain inspectable without
+releasing sensitive sample-level artifacts.
