@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
 
 
-DEFAULT_ROOT = "/remote/homes/user/anonymous_experiments"
+DEFAULT_ROOT = "/remote/homes/user/implementation/blackboxnlp_anonymous"
 DEFAULT_PYTHON = "/remote/homes/user/implementation/.venv_hosta/bin/python"
 DEFAULT_GPU_API_URL = "https://www.gpu-status.example.edu/api/gpu/status"
 MODEL_HOSTS = {

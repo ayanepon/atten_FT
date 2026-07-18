@@ -46,7 +46,7 @@ GPT_NEO_LORA_MODULES = [
 ]
 DEFAULT_PYTHIA_LORA_CSV = ",".join(PYTHIA_LORA_MODULES)
 
-MODEL_CLI_HELP = "Preset: pythia-1b | pythia-410m | gpt-neo-2.7b"
+MODEL_CLI_HELP = "Preset: pythia-1b | pythia-410m | pythia-160m | gpt-neo-2.7b"
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +115,17 @@ MODEL_PRESETS: Dict[str, ModelSpec] = {
         default_features_root="attention_features_pythia410m",
         notes="Supplementary size comparison; same LoRA modules as Pythia-1B.",
     ),
+    "pythia-160m": ModelSpec(
+        key="pythia-160m",
+        hf_id="EleutherAI/pythia-160m",
+        family="gpt_neox",
+        lora_target_modules=PYTHIA_LORA_MODULES,
+        short_name="pythia160m",
+        label="Pythia-160M",
+        default_run_dir="mimir_lora_pythia160m",
+        default_features_root="attention_features_pythia160m",
+        notes="Controlled same-family replication for reviewer revision E14.",
+    ),
     "gpt-neo-2.7b": ModelSpec(
         key="gpt-neo-2.7b",
         hf_id="EleutherAI/gpt-neo-2.7B",
@@ -135,6 +146,9 @@ _ALIASES: Dict[str, str] = {
     "pythia410m": "pythia-410m",
     "pythia-410m": "pythia-410m",
     "eleutherai/pythia-410m": "pythia-410m",
+    "pythia160m": "pythia-160m",
+    "pythia-160m": "pythia-160m",
+    "eleutherai/pythia-160m": "pythia-160m",
     "gptneo": "gpt-neo-2.7b",
     "gpt-neo": "gpt-neo-2.7b",
     "gptneo27b": "gpt-neo-2.7b",

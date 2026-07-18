@@ -7,9 +7,11 @@ import argparse
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
-from reviewer_followup.common import atomic_write_csv, atomic_write_json, base_manifest
+from reviewer_followup.common import atomic_write_csv, atomic_write_json, base_manifest, sha256_file
 from reviewer_followup.evaluation import (
     aggregate_repeats,
     bootstrap_auc_delta,
@@ -44,7 +46,71 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--repeats", type=int, default=10)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--n-bootstrap", type=int, default=2000)
+    parser.add_argument("--n-permutations", type=int, default=1000)
     return parser.parse_args(argv)
+
+
+def _is_global(column: str) -> bool:
+    return "_global_" in column
+
+
+def _is_cosine(column: str) -> bool:
+    return column.endswith(("grad_weight_cosine", "grad_delta_cosine"))
+
+
+def target_score_inference(
+    predictions: pd.DataFrame,
+    *,
+    n_bootstrap: int,
+    n_permutations: int,
+    seed: int,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Infer on target-averaged OOF scores, never on CV-repeat metrics."""
+    bootstrap_rows = []
+    permutation_rows = []
+    for index, ((comparison, method), part) in enumerate(
+        predictions.groupby(["comparison", "method"], sort=True)
+    ):
+        averaged = part.groupby(["sample_id", "y_true"], as_index=False)["score"].mean()
+        y = averaged["y_true"].to_numpy(int)
+        score = averaged["score"].to_numpy(float)
+        positive = np.flatnonzero(y == 1)
+        negative = np.flatnonzero(y == 0)
+        rng = np.random.default_rng(seed + index)
+        observed = float(roc_auc_score(y, score))
+        boot = np.empty(n_bootstrap, dtype=float)
+        for draw in range(n_bootstrap):
+            sampled = np.concatenate(
+                [rng.choice(positive, len(positive), replace=True), rng.choice(negative, len(negative), replace=True)]
+            )
+            boot[draw] = roc_auc_score(y[sampled], score[sampled])
+        low, high = np.quantile(boot, [0.025, 0.975])
+        bootstrap_rows.append(
+            {
+                "comparison": comparison,
+                "method": method,
+                "auc": observed,
+                "ci_low": float(low),
+                "ci_high": float(high),
+                "n_targets": int(len(averaged)),
+                "n_bootstrap": n_bootstrap,
+                "resampling_unit": "target_after_averaging_repeated_cv_scores",
+            }
+        )
+        permuted = np.asarray([roc_auc_score(rng.permutation(y), score) for _ in range(n_permutations)])
+        p_value = float((1 + np.count_nonzero(np.abs(permuted - 0.5) >= abs(observed - 0.5))) / (n_permutations + 1))
+        permutation_rows.append(
+            {
+                "comparison": comparison,
+                "method": method,
+                "observed_auc": observed,
+                "permutation_auc_mean": float(permuted.mean()),
+                "two_sided_p": p_value,
+                "n_permutations": n_permutations,
+                "test": "fixed_oof_score_label_permutation",
+            }
+        )
+    return pd.DataFrame(bootstrap_rows), pd.DataFrame(permutation_rows)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -68,6 +134,11 @@ def main(argv: list[str] | None = None) -> None:
     update_columns = gradient_columns + delta_columns + trajectory_columns
     feature_sets = {
         "attention": attention_columns,
+        "gradient_global_magnitude": [
+            column for column in gradient_columns if _is_global(column) and column.endswith(("grad_l1", "grad_l2", "grad_max"))
+        ],
+        "update_cosines": [column for column in gradient_columns + delta_columns if _is_cosine(column)],
+        "gradient_layer_only": [column for column in gradient_columns if not _is_global(column)],
         "gradient": gradient_columns,
         "parameter_delta": delta_columns,
         "gradient_plus_delta": gradient_columns + delta_columns,
@@ -89,6 +160,32 @@ def main(argv: list[str] | None = None) -> None:
         n_bootstrap=args.n_bootstrap,
         seed=args.seed,
     )
+    inference, permutations = target_score_inference(
+        predictions,
+        n_bootstrap=args.n_bootstrap,
+        n_permutations=args.n_permutations,
+        seed=args.seed,
+    )
+    dictionary_rows = [
+        {"method": method, "feature": feature, "feature_family": feature.split("_", 2)[1] if feature.startswith("upd_") else "attention_or_trajectory"}
+        for method, columns in feature_sets.items()
+        for feature in columns
+    ]
+    selection_frequency = (
+        selections.groupby(["comparison", "method", "feature"], as_index=False)
+        .size()
+        .rename(columns={"size": "selected_fold_count"})
+    )
+    denominators = selections.groupby(["comparison", "method"])[["repeat", "fold"]].apply(
+        lambda part: len(part.drop_duplicates())
+    )
+    if not selection_frequency.empty:
+        selection_frequency["eligible_fold_count"] = [
+            int(denominators.loc[(row.comparison, row.method)]) for row in selection_frequency.itertuples(index=False)
+        ]
+        selection_frequency["selection_frequency"] = (
+            selection_frequency["selected_fold_count"] / selection_frequency["eligible_fold_count"]
+        )
     output = Path(args.output_dir)
     output.mkdir(parents=True, exist_ok=True)
     atomic_write_csv(output / "update_baseline_repeats.csv", repeats)
@@ -96,8 +193,26 @@ def main(argv: list[str] | None = None) -> None:
     atomic_write_csv(output / "update_baseline_outer_predictions.csv", predictions)
     atomic_write_csv(output / "update_baseline_selected_features.csv", selections)
     atomic_write_csv(output / "attention_incremental_bootstrap.csv", deltas)
+    atomic_write_csv(output / "update_baseline_target_bootstrap.csv", inference)
+    atomic_write_csv(output / "update_baseline_label_permutation.csv", permutations)
+    atomic_write_csv(output / "update_baseline_feature_dictionary.csv", pd.DataFrame(dictionary_rows))
+    atomic_write_csv(output / "update_baseline_selection_frequency.csv", selection_frequency)
     manifest = base_manifest(experiment="e8_update_baselines", command=sys.argv)
-    manifest.update({"status": "completed", "feature_counts": {key: len(value) for key, value in feature_sets.items()}})
+    manifest.update(
+        {
+            "status": "completed",
+            "feature_counts": {key: len(value) for key, value in feature_sets.items()},
+            "n_bootstrap": args.n_bootstrap,
+            "n_permutations": args.n_permutations,
+            "resampling_unit": "target_after_averaging_repeated_cv_scores",
+            "permutation_test": "fixed_oof_score_label_permutation",
+            "input_sha256": {
+                "attention_csv": sha256_file(Path(args.attention_csv)),
+                "update_csv": sha256_file(Path(args.update_csv)),
+                "sample_csv": sha256_file(Path(args.sample_csv)),
+            },
+        }
+    )
     atomic_write_json(output / "update_baseline_manifest.json", manifest)
     print(aggregate_repeats(repeats).to_string(index=False))
     print(deltas.to_string(index=False))

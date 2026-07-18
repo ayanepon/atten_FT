@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "experiment": "baseline_fidelity_audit",
+  "created_at": "2026-07-18T15:10:44+0900",
+  "command": [
+    "python",
+    "-m",
+    "reviewer_followup.write_baseline_fidelity_manifest",
+    "--data-dir",
+    ".",
+    "--output-json",
+    "baseline_fidelity_manifest.json"
+  ],
+  "status": "completed",
+  "canonical_outputs_mutated": false,
+  "baselines": {
+    "initial_loss": {
+      "entrypoint": "run_strict_fixed20_comparison_10runs.py",
+      "paper_role": "one-dimensional logistic regression with direction learned on training folds",
+      "official_or_adapted": "paper-matched local implementation",
+      "path": "run_strict_fixed20_comparison_10runs.py",
+      "sha256": "cd8dfc8ee88be49e053de4d884212edd0e0588d41dfdea86a23cf45ab49020af",
+      "validation": "passed",
+      "paper_protocol_changes": [
+        "shared target split",
+        "shared outer folds",
+        "train-only preprocessing"
+      ]
+    },
+    "loss_decrease": {
+      "entrypoint": "run_strict_fixed20_comparison_10runs.py",
+      "paper_role": "one-dimensional logistic regression with direction learned on training folds",
+      "official_or_adapted": "paper-matched local implementation",
+      "path": "run_strict_fixed20_comparison_10runs.py",
+      "sha256": "cd8dfc8ee88be49e053de4d884212edd0e0588d41dfdea86a23cf45ab49020af",
+      "validation": "passed",
+      "paper_protocol_changes": [
+        "shared target split",
+        "shared outer folds",
+        "train-only preprocessing"
+      ]
+    },
+    "lora_leak": {
+      "entrypoint": "run_lora_leak_official_mimir_hardsplit_2.py",
+      "paper_role": "frozen target_mink++_0.2 scalar reported as Min-K%++ (LoRA-FT)",
+      "official_or_adapted": "single score from the LoRA-Leak method family; not the complete attack suite",
+      "path": "run_lora_leak_official_mimir_hardsplit_2.py",
+      "sha256": "40a69389cb5c312fae67bacb251394ed271ce649f19389a6bbbfee7d351f7454",
+      "validation": "passed",
+      "paper_protocol_changes": [
+        "shared target split",
+        "shared outer folds",
+        "train-only preprocessing"
+      ]
+    },
+    "attenmia": {
+      "entrypoint": "run_attenmia_official_mimir_hardsplit.py",
+      "paper_role": "official attention-perturbation feature construction with common-fold MLP evaluation",
+      "official_or_adapted": "adapted official method",
+      "path": "run_attenmia_official_mimir_hardsplit.py",
+      "sha256": "d0bb12edcd4029391de91f4179703f58eb5f0eed27e9e1f0f07e9005b19074a9",
+      "validation": "passed",
+      "paper_protocol_changes": [
+        "shared target split",
+        "shared outer folds",
+        "train-only preprocessing"
+      ]
+    },
+    "fusion_2d": {
+      "entrypoint": "run_crossfit_fusion_en_lora_leak.py",
+      "paper_role": "outer-fold-safe fusion of Proposed+EN and Min-K%++ (LoRA-FT) scores",
+      "official_or_adapted": "new composition; not an original baseline",
+      "path": "run_crossfit_fusion_en_lora_leak.py",
+      "sha256": "fee2b93d69db8632ed77fed0870c89e30a24c01a008f618ecc671fb3ab0b623d",
+      "validation": "passed",
+      "paper_protocol_changes": [
+        "shared target split",
+        "shared outer folds",
+        "train-only preprocessing"
+      ]
+    }
+  },
+  "claim_boundary": "The reported Min-K%++ row is one frozen scalar from the LoRA-Leak method family, not a reproduction of the complete attack suite; other fidelity statements concern the paper-controlled split and folds."
+}

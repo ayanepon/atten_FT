@@ -4,7 +4,7 @@
 # re-extraction with the new adapter + eval, kept minimal (no baselines/exp1/exp3)
 # since the purpose is only to check proposed_all/proposed_en AUC stability.
 set -euo pipefail
-cd /remote/homes/user/anonymous_experiments
+cd /remote/homes/user/implementation/blackboxnlp_anonymous
 VENV=/remote/homes/user/implementation/.venv_hosta/bin/python3
 RUN_DIR=mimir_lora_pythia1b_seed123
 FEATURES_ROOT=attention_features_pythia1b_seed123

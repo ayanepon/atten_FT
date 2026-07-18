@@ -14,6 +14,8 @@ data/
   mimir_hardsplit_attention_common.py
   train_mimir_wikipedia_hardsplit_lora.py
   run_strict_fixed20_comparison_10runs.py
+  test_reviewer_revision.py
+  reviewer_followup/          # E7--E14 controls, uncertainty, and controllers
   run_attenmia_official_mimir_hardsplit.py
   run_lora_leak_official_mimir_hardsplit.py   # alias → _2
   run_lora_leak_official_mimir_hardsplit_2.py
@@ -37,6 +39,6 @@ python extract_attention_hardsplit.py ... --amp --flush-every 25 --shard 0/4
 # Eval: reuse feature cache + parallel EN repeats
 python run_strict_fixed20_comparison_10runs.py ... --n-jobs 4
 
-# LoRA-Leak fast path
+# Min-K%++ / LoRA-Leak-family score-extraction fast path
 python run_lora_leak_official_mimir_hardsplit.py --fast
 ```

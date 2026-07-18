@@ -5,7 +5,7 @@
 # retraining -- rho only changes query-position selection at extraction time)
 # and re-runs fixed-20 attention extraction with TOPK_LOSS_PERCENT=5 and =20.
 set -euo pipefail
-cd /remote/homes/user/anonymous_experiments
+cd /remote/homes/user/implementation/blackboxnlp_anonymous
 VENV=/remote/homes/user/implementation/.venv_hosta/bin/python3
 RUN_DIR=mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_2
 SEED=42

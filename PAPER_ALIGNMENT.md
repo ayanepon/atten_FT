@@ -17,7 +17,7 @@
 | `run_strict_fixed20_pythia1b_comparison_10runs.py` | Alias → comparison script |
 | `analyze_exp1_layer_head_significance.py` | Exp.1 FDR / Cliff's δ |
 | `train_mimir_wikipedia_hardsplit_lora.py` | LoRA FT trainer (`--model` presets) |
-| `run_lora_leak_official_mimir_hardsplit_2.py` | LoRA-Leak baseline (core) |
+| `run_lora_leak_official_mimir_hardsplit_2.py` | LoRA-Leak-family score extraction; paper row is Min-K%++ (LoRA-FT) |
 | `run_lora_leak_official_mimir_hardsplit_{pythia410m,gptneo27b}.py` | Thin model-specific wrappers |
 | `run_attenmia_official_mimir_hardsplit.py` | AttenMIA baseline (core) |
 | `run_attenmia_official_mimir_hardsplit_{pythia410m,gptneo27b}.py` | Thin model-specific wrappers |
@@ -48,6 +48,7 @@ orchestrate / strict-eval all consume this module (no duplicated preset tables).
 |-----------|-------|---------------------|-----------------|---------------|
 | `pythia-1b` | `EleutherAI/pythia-1b` | NeoX: qkv/dense/h_to_4h/4h_to_h | `mimir_wikipedia_hardsplit_lora_ft_lr1e-4_epoch5_2` | `attention_features_mimir_hardsplit` |
 | `pythia-410m` | `EleutherAI/pythia-410m` | same as 1B | `mimir_lora_pythia410m` | `attention_features_pythia410m` |
+| `pythia-160m` | `EleutherAI/pythia-160m` | same as 1B | `mimir_lora_pythia160m` | `attention_features_pythia160m` |
 | `gpt-neo-2.7b` | `EleutherAI/gpt-neo-2.7B` | q/k/v/out/c_fc/c_proj | `mimir_lora_gptneo27b` | `attention_features_gptneo27b` |
 
 Base model is also inferred from `adapter/adapter_config.json` when `--model-name` is empty.
@@ -139,6 +140,7 @@ Strict eval uses short names:
 |------------------------|-----------------|
 | `pythia-1b` | `pythia1b` |
 | `pythia-410m` | `pythia410m` |
+| `pythia-160m` | `pythia160m` |
 | `gpt-neo-2.7b` | `gptneo27b` |
 
 ## Performance knobs (paper-safe defaults)
@@ -151,8 +153,8 @@ Strict eval uses short names:
 | extract | LoRA snapshot on GPU | `SNAPSHOT_ON_CPU=1` to save VRAM |
 | extract | attention metrics stay on GPU | Same features |
 | AttenMIA | shared non-prefix feature cache across comparisons | FT computed once |
-| LoRA-Leak | `--fast` | Min-K=0.2 only, no GradNormx |
-| LoRA-Leak | `--no-gradnormx` | Large speedup when GradNormx not needed |
+| LoRA-Leak score extraction | `--fast` | Min-K=0.2 only, no GradNormx |
+| LoRA-Leak score extraction | `--no-gradnormx` | Large speedup when GradNormx not needed |
 | strict eval | `proposed_features_fixed20_cache.parquet` | Auto-built; `--refresh-feature-cache` to rebuild |
 
 The strict evaluator also shares each comparison's train-only standardized fold
@@ -171,6 +173,23 @@ heads.
 
 Paper protocol (lr=1e-5, fixed-20, masked attention features, FT positive, no test flip) is unchanged.
 
+## E13/E14 reviewer revision
+
+`reviewer_followup/revision_controller.py` freezes two isolated additions.
+E13 reuses E7 seed 42 only after exact input-hash and seed verification, then
+trains four independent crossed Pythia-1B checkpoints and performs a
+checkpoint-then-target hierarchical bootstrap. E14 applies the exact E11
+controlled data construction to Pythia-160M. Target-level uncertainty scripts
+average repeated-CV OOF scores per target before inference.
+
+Both additions completed. Across the five crossed Pythia-1B checkpoints, the
+conditional FT-effect AUCs are 0.693 [0.666, 0.718] and 0.711
+[0.690, 0.734] under checkpoint-then-target bootstrap; both PT-effect
+intervals include 0.5. In the controlled Pythia-160M experiment, one FT
+contrast is below chance and the other three contrasts are inconclusive.
+Matched update ablations reach AUC 1.000 with layer-wise gradients and give
+zero incremental FT-effect AUC after adding attention.
+
 ## E6 reproducibility freeze (2026-07-16)
 
 Protocol, score columns, Elastic Net settings, and artifact roots for paper tables and additional experiments are frozen in:
@@ -178,4 +197,6 @@ Protocol, score columns, Elastic Net settings, and artifact roots for paper tabl
 - `results/additional_20260715/E6_REPRODUCIBILITY_MANIFEST.json`
 - `results/additional_20260715/E6_REPRODUCIBILITY_MANIFEST.md`
 
-Key freezes: LoRA-Leak paper score = `target_mink++_0.2`; EN `max_iter=1000`, `tol=5e-4`; query offset main = 1; no test-label AUC flip.
+Key freezes: Min-K%++ (LoRA-FT) paper score = `target_mink++_0.2`; this is one
+score evaluated by LoRA-Leak, not the complete LoRA-Leak suite. EN
+`max_iter=1000`, `tol=5e-4`; query offset main = 1; no test-label AUC flip.

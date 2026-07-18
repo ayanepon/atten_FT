@@ -469,6 +469,7 @@ def run_proposed_en(
     common_splits: List[Dict],
     args: argparse.Namespace,
     prepared: Optional[PreparedFeatureEvaluation] = None,
+    prediction_sink: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     prepared = prepared or prepare_feature_evaluation(features, positive_group, negative_group, common_splits)
     feature_cols, df, x_all, y, uid_to_idx = (
@@ -516,6 +517,15 @@ def run_proposed_en(
             clf.fit(x_train[:, selected], y[train_idx])
             scores = clf.predict_proba(x_test[:, selected])[:, 1]
             fold_metrics.append(compute_metrics(y[test_idx], scores))
+            if prediction_sink is not None:
+                prediction_sink.extend(
+                    {
+                        "method": "proposed_en", "repeat": repeat, "fold": split["fold"],
+                        "uid": df.iloc[int(i)]["uid"], "group": df.iloc[int(i)]["group"],
+                        "y_true": int(y[int(i)]), "score": float(score),
+                    }
+                    for i, score in zip(test_idx, scores)
+                )
 
         return {
             "method": "proposed_en",
@@ -550,6 +560,7 @@ def run_proposed_all(
     common_splits: List[Dict],
     args: argparse.Namespace,
     prepared: Optional[PreparedFeatureEvaluation] = None,
+    prediction_sink: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     prepared = prepared or prepare_feature_evaluation(features, positive_group, negative_group, common_splits)
     feature_cols, df, x_all, y, uid_to_idx = (
@@ -579,6 +590,15 @@ def run_proposed_all(
             clf.fit(x_train, y[train_idx])
             scores = clf.predict_proba(x_test)[:, 1]
             fold_metrics.append(compute_metrics(y[test_idx], scores))
+            if prediction_sink is not None:
+                prediction_sink.extend(
+                    {
+                        "method": "proposed_all", "repeat": repeat, "fold": split["fold"],
+                        "uid": df.iloc[int(i)]["uid"], "group": df.iloc[int(i)]["group"],
+                        "y_true": int(y[int(i)]), "score": float(score),
+                    }
+                    for i, score in zip(test_idx, scores)
+                )
         rows.append(
             {
                 "method": "proposed_all",
@@ -603,6 +623,7 @@ def run_scalar_lr(
     negative_group: str,
     common_splits: List[Dict],
     args: argparse.Namespace,
+    prediction_sink: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     """Paper: scalar baseline as 1D input to logistic regression; direction from train only."""
     df = ensure_uid(df)
@@ -638,6 +659,15 @@ def run_scalar_lr(
             clf.fit(x_train, y[train_idx])
             scores = clf.predict_proba(x_test)[:, 1]
             fold_metrics.append(compute_metrics(y[test_idx], scores))
+            if prediction_sink is not None:
+                prediction_sink.extend(
+                    {
+                        "method": method, "repeat": repeat, "fold": split["fold"],
+                        "uid": df.iloc[int(i)]["uid"], "group": df.iloc[int(i)]["group"],
+                        "y_true": int(y[int(i)]), "score": float(score),
+                    }
+                    for i, score in zip(test_idx, scores)
+                )
         rows.append(
             {
                 "method": method,
@@ -704,6 +734,7 @@ def run_attenmia_mlp(
     negative_group: str,
     common_splits: List[Dict],
     args: argparse.Namespace,
+    prediction_sink: Optional[List[Dict]] = None,
 ) -> List[Dict]:
     """AttenMIA features with the same common folds as the proposed method."""
     df = ensure_uid(features)
@@ -749,6 +780,15 @@ def run_attenmia_mlp(
             clf.fit(x_train, y[train_idx])
             scores = clf.predict_proba(x_test)[:, 1]
             fold_metrics.append(compute_metrics(y[test_idx], scores))
+            if prediction_sink is not None:
+                prediction_sink.extend(
+                    {
+                        "method": "attenmia", "repeat": repeat, "fold": split["fold"],
+                        "uid": df.iloc[int(i)]["uid"], "group": df.iloc[int(i)]["group"],
+                        "y_true": int(y[int(i)]), "score": float(score),
+                    }
+                    for i, score in zip(test_idx, scores)
+                )
         rows.append(
             {
                 "method": "attenmia",
@@ -921,7 +961,13 @@ def _groups_for_comparisons(comparisons: Sequence[str]) -> List[str]:
     return order
 
 
-def run_one_model(model: str, config: Dict[str, str], args: argparse.Namespace, output_dir: Path) -> List[Dict]:
+def run_one_model(
+    model: str,
+    config: Dict[str, str],
+    args: argparse.Namespace,
+    output_dir: Path,
+    prediction_rows: Optional[List[Dict]] = None,
+) -> List[Dict]:
     log(f"Start {model}")
     proposed_root = resolve_path(config["proposed_root"])
     condition_prefix = str(getattr(args, "condition_prefix", "fixed_attention_20") or "fixed_attention_20")
@@ -950,6 +996,7 @@ def run_one_model(model: str, config: Dict[str, str], args: argparse.Namespace, 
 
     all_rows: List[Dict] = []
     for comparison in args.comparisons:
+        comparison_predictions: List[Dict] = []
         positive_group, negative_group = COMPARISONS[comparison]
         log(f"{model} {comparison}: common folds")
         common_splits, split_df = make_common_splits(
@@ -974,28 +1021,32 @@ def run_one_model(model: str, config: Dict[str, str], args: argparse.Namespace, 
             all_rows.extend(
                 {"model": model, "comparison": comparison, **row}
                 for row in run_proposed_all(
-                    proposed_features, positive_group, negative_group, common_splits, args, prepared
+                    proposed_features, positive_group, negative_group, common_splits, args, prepared,
+                    comparison_predictions,
                 )
             )
         if "proposed_en" in args.methods:
             all_rows.extend(
                 {"model": model, "comparison": comparison, **row}
                 for row in run_proposed_en(
-                    proposed_features, positive_group, negative_group, common_splits, args, prepared
+                    proposed_features, positive_group, negative_group, common_splits, args, prepared,
+                    comparison_predictions,
                 )
             )
         if "initial_loss" in args.methods:
             all_rows.extend(
                 {"model": model, "comparison": comparison, **row}
                 for row in run_scalar_lr(
-                    loss_scores, "initial_loss", "initial_loss", positive_group, negative_group, common_splits, args
+                    loss_scores, "initial_loss", "initial_loss", positive_group, negative_group, common_splits, args,
+                    comparison_predictions,
                 )
             )
         if "loss_decrease" in args.methods:
             all_rows.extend(
                 {"model": model, "comparison": comparison, **row}
                 for row in run_scalar_lr(
-                    loss_scores, "loss_decrease", "loss_decrease", positive_group, negative_group, common_splits, args
+                    loss_scores, "loss_decrease", "loss_decrease", positive_group, negative_group, common_splits, args,
+                    comparison_predictions,
                 )
             )
         if "lora_leak" in args.methods and lora_df is not None:
@@ -1010,7 +1061,8 @@ def run_one_model(model: str, config: Dict[str, str], args: argparse.Namespace, 
             all_rows.extend(
                 {"model": model, "comparison": comparison, **row}
                 for row in run_scalar_lr(
-                    lora_df, score_col, "lora_leak", positive_group, negative_group, common_splits, args
+                    lora_df, score_col, "lora_leak", positive_group, negative_group, common_splits, args,
+                    comparison_predictions,
                 )
             )
         if "attenmia" in args.methods and attenmia_root:
@@ -1018,12 +1070,19 @@ def run_one_model(model: str, config: Dict[str, str], args: argparse.Namespace, 
             if att is not None:
                 all_rows.extend(
                     {"model": model, "comparison": comparison, **row}
-                    for row in run_attenmia_mlp(att, positive_group, negative_group, common_splits, args)
+                    for row in run_attenmia_mlp(
+                        att, positive_group, negative_group, common_splits, args, comparison_predictions
+                    )
                 )
             else:
                 log(f"AttenMIA features missing for {comparison}; skipped")
 
         pd.DataFrame(all_rows).to_csv(output_dir / "auc_10runs.partial.csv", index=False)
+        if prediction_rows is not None:
+            prediction_rows.extend(
+                {"model": model, "comparison": comparison, **row} for row in comparison_predictions
+            )
+            pd.DataFrame(prediction_rows).to_csv(output_dir / "oof_predictions.partial.csv", index=False)
     return all_rows
 
 
@@ -1043,6 +1102,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--repeats", type=int, default=10)
     parser.add_argument("--cv-splits", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--n-bootstrap",
+        type=int,
+        default=10000,
+        help="Target-level stratified bootstrap draws for method and paired-delta intervals.",
+    )
     parser.add_argument("--selection-c", type=float, default=0.1)
     parser.add_argument("--classifier-c", type=float, default=1.0)
     parser.add_argument("--elasticnet-l1-ratio", type=float, default=0.7)
@@ -1103,15 +1168,27 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     rows: List[Dict] = []
+    prediction_rows: List[Dict] = []
     for model in args.models:
         config = dict(MODEL_CONFIGS[model])
         config["proposed_root"] = getattr(args, f"{model}_proposed_root")
         config["lora_root"] = getattr(args, f"{model}_lora_root")
         config["attenmia_root"] = getattr(args, f"{model}_attenmia_root")
-        rows.extend(run_one_model(model, config, args, output_dir))
+        rows.extend(run_one_model(model, config, args, output_dir, prediction_rows))
 
     auc_df = pd.DataFrame(rows)
     auc_df.to_csv(output_dir / "auc_10runs.csv", index=False)
+    predictions_df = pd.DataFrame(prediction_rows)
+    predictions_df.to_csv(output_dir / "oof_predictions.csv", index=False)
+    from reviewer_followup.analyze_oof_uncertainty import infer_oof_uncertainty
+    method_intervals, paired_intervals = infer_oof_uncertainty(
+        predictions_df,
+        n_bootstrap=args.n_bootstrap,
+        seed=args.seed,
+        reference_method="proposed_en",
+    )
+    method_intervals.to_csv(output_dir / "method_target_bootstrap_auc.csv", index=False)
+    paired_intervals.to_csv(output_dir / "paired_target_bootstrap_auc_deltas.csv", index=False)
     summary_df = summarize(auc_df)
     summary_df.to_csv(output_dir / "summary_auc.csv", index=False)
     tests_df = paired_tests(auc_df, "proposed_en")

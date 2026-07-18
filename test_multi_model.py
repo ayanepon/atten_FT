@@ -31,8 +31,8 @@ class TestModelRegistry(unittest.TestCase):
     def test_list_keys(self):
         from model_registry import list_eval_keys, list_model_keys
 
-        self.assertEqual(list_model_keys(), ["pythia-1b", "pythia-410m", "gpt-neo-2.7b"])
-        self.assertEqual(list_eval_keys(), ["pythia1b", "pythia410m", "gptneo27b"])
+        self.assertEqual(list_model_keys(), ["pythia-1b", "pythia-410m", "pythia-160m", "gpt-neo-2.7b"])
+        self.assertEqual(list_eval_keys(), ["pythia1b", "pythia410m", "pythia160m", "gptneo27b"])
 
     def test_aliases_and_hf_ids(self):
         from model_registry import normalize_model_key, resolve_model_name, resolve_model_spec

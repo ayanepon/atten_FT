@@ -2,7 +2,7 @@
 
 This directory contains the experiment programs used for the paper, including
 the original experiments, baselines, robustness checks, and reviewer-follow-up
-experiments E7--E12. All documentation, module docstrings, and source comments
+experiments E7--E14. All documentation, module docstrings, and source comments
 are in English.
 
 The code is provided for reviewer inspection and reproducibility. Model
@@ -20,7 +20,8 @@ python -m pip install -r requirements.txt
 
 # CPU-only integrity and protocol tests
 PYTHONPATH=. python -m unittest -q \
-  test_reviewer_followup test_additional_experiments test_multi_model
+  test_reviewer_revision test_reviewer_followup \
+  test_additional_experiments test_multi_model
 
 # Inspect the original experiment plan without launching jobs
 ./run_paper_experiments.sh plan
@@ -30,6 +31,11 @@ PYTHONPATH=. python -m reviewer_followup.controller plan \
   --output-root results/reviewer_followup
 PYTHONPATH=. python -m reviewer_followup.controller status \
   --output-root results/reviewer_followup
+
+# Materialize the isolated E13/E14 plan
+PYTHONPATH=. python -m reviewer_followup.revision_controller plan \
+  --source-root results/reviewer_followup \
+  --output-root results/reviewer_revision
 ```
 
 GPU stages are never launched by the reviewer-follow-up controller without
@@ -56,9 +62,11 @@ export GPU_STATUS_URL=https://example.edu/api/gpu/status
   extraction entry points.
 - `run_strict_fixed20_comparison_10runs.py`: repeated stratified evaluation of
   the proposed features and baselines.
-- `run_attenmia_official_mimir_hardsplit*.py` and
-  `run_lora_leak_official_mimir_hardsplit*.py`: AttenMIA and LoRA-Leak
-  baselines.
+- `run_attenmia_official_mimir_hardsplit*.py`: the AttenMIA baseline.
+- `run_lora_leak_official_mimir_hardsplit*.py`: score extraction for the
+  LoRA-Leak method family. The paper reports only the frozen
+  `target_mink++_0.2` scalar as **Min-K%++ (LoRA-FT)**, not the complete
+  LoRA-Leak attack suite.
 - `run_crossfit_fusion_en_lora_leak.py`: leakage-safe, cross-fitted score
   fusion.
 - `run_nested_step_selection.py`, `run_paired_robustness.py`,
@@ -66,16 +74,18 @@ export GPU_STATUS_URL=https://example.edu/api/gpu/status
   step selection, multi-run robustness, and confound controls.
 - `analyze_exp1_layer_head_significance.py`: FDR-corrected layer--head
   localization and effect-size analysis.
-- `reviewer_followup/`: self-contained E7--E12 package for crossed designs,
+- `reviewer_followup/`: self-contained E7--E14 package for crossed designs,
   update-feature baselines, checkpoint stability, a controlled model-family
   study, full nested protocol selection, shard merging, and final audits.
+- `baseline_fidelity_manifest.json`: implementation hashes, adaptation
+  boundaries, and official/adapted status for manuscript baselines.
 - `hardsplit/`: shared model, AMP, progress, sharding, and CLI utilities.
 - `test_reviewer_followup.py`, `test_additional_experiments.py`, and
   `test_multi_model.py`: CPU-only tests.
 - `PAPER_ALIGNMENT.md` and `STRUCTURE.md`: detailed script-to-paper mapping and
   performance-oriented code layout.
 
-## Reviewer-follow-up workflow (E7--E12)
+## Reviewer-follow-up workflow (E7--E14)
 
 The controller first freezes every argv vector, seed, expected output, and GPU
 flag in `experiment_plan.json`:
@@ -103,6 +113,11 @@ and the E12 merge must cover all 1,500 target IDs. The final audit is:
 PYTHONPATH=. python -m reviewer_followup.audit_results \
   --output-root results/reviewer_followup
 ```
+
+E13/E14 use a separate frozen result root through
+`reviewer_followup.revision_controller`. E13 performs hierarchical
+checkpoint-then-target inference; E14 uses the exact controlled E11 data with
+Pythia-160M. Both retain explicit GPU opt-in and fresh GPU-status snapshots.
 
 ## Data and model inputs
 
